@@ -5,8 +5,8 @@ data class User(
     val name: String = "",
     val bio: String = "",
     val profileImage: String = "",
-    val gender: String = "Any",
+    val gender: String = "Not Specified",
     val country: String = "Global",
     val isOnline: Boolean = false,
-    val coins: Int = 0
+    val availableMinutes: Int = 30
 )

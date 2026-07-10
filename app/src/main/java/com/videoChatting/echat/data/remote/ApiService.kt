@@ -1,0 +1,56 @@
+package com.videoChatting.echat.data.remote
+
+import com.videoChatting.echat.data.remote.model.AuthResponse
+import com.videoChatting.echat.data.remote.model.GoogleLoginRequest
+import com.videoChatting.echat.data.remote.model.GuestLoginRequest
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.GET
+import retrofit2.http.Path
+
+interface ApiService {
+    @POST("auth/guest")
+    suspend fun loginGuest(
+        @Body request: GuestLoginRequest
+    ): Response<AuthResponse>
+
+    @POST("auth/google")
+    suspend fun loginGoogle(
+        @Body request: GoogleLoginRequest
+    ): Response<AuthResponse>
+
+    @PUT("auth/profile")
+    suspend fun updateProfile(
+        @Body request: com.videoChatting.echat.data.remote.model.UpdateProfileRequest
+    ): Response<AuthResponse>
+
+    @GET("chat/{chatId}/messages")
+    suspend fun getMessages(
+        @Path("chatId") chatId: String
+    ): Response<com.videoChatting.echat.data.remote.model.MessagesHistoryResponse>
+
+    @POST("auth/interaction")
+    suspend fun toggleInteraction(
+        @Body request: com.videoChatting.echat.data.remote.model.ToggleInteractionRequest
+    ): Response<com.videoChatting.echat.data.remote.model.AuthResponse>
+
+    @GET("auth/interactions")
+    suspend fun getInteractions(): Response<com.videoChatting.echat.data.remote.model.InteractionsResponse>
+
+    @GET("consent")
+    suspend fun getPendingConsents(
+        @retrofit2.http.Query("userId") userId: String
+    ): Response<com.videoChatting.echat.data.remote.model.ConsentNotificationsResponse>
+
+    @POST("consent/respond")
+    suspend fun respondToConsent(
+        @Body request: com.videoChatting.echat.data.remote.model.RespondConsentRequest
+    ): Response<com.videoChatting.echat.data.remote.model.RespondConsentResponse>
+
+    @POST("consent/revoke")
+    suspend fun revokeConsent(
+        @Body request: com.videoChatting.echat.data.remote.model.RevokeConsentRequest
+    ): Response<com.videoChatting.echat.data.remote.model.RespondConsentResponse>
+}

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
@@ -24,19 +25,21 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(navController: NavController, userName: String, viewModel: ChatViewModel = hiltViewModel()) {
+fun ChatScreen(navController: NavController, targetUserId: String, userName: String, viewModel: ChatViewModel = hiltViewModel()) {
     var messageText by remember { mutableStateOf("") }
     
-    // Generate a consistent dummy chatId for demo purposes between current user and the clicked user
-    // In a real app, this would be fetched or created from Firestore based on both user IDs
-    val chatId = "demo_chat_with_$userName"
+    val currentUserId = viewModel.currentUserId ?: ""
+    val chatId = if (currentUserId < targetUserId) {
+        "chat_${currentUserId}_${targetUserId}"
+    } else {
+        "chat_${targetUserId}_${currentUserId}"
+    }
     
     LaunchedEffect(chatId) {
         viewModel.loadMessages(chatId)
     }
     
     val messages by viewModel.messages.collectAsState()
-    val currentUserId = viewModel.currentUserId ?: ""
 
     Scaffold(
         topBar = {
@@ -48,11 +51,12 @@ fun ChatScreen(navController: NavController, userName: String, viewModel: ChatVi
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Start Audio Call */ }) {
-                        Icon(Icons.Default.Call, contentDescription = "Audio Call")
-                    }
-                    IconButton(onClick = { /* Start Video Call */ }) {
-                        Icon(Icons.Default.Videocam, contentDescription = "Video Call")
+                    IconButton(onClick = {
+                        viewModel.revokeConsent(targetUserId) {
+                            navController.popBackStack()
+                        }
+                    }) {
+                        Icon(Icons.Default.Block, contentDescription = "Revoke Consent", tint = MaterialTheme.colorScheme.error)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,6 +69,7 @@ fun ChatScreen(navController: NavController, userName: String, viewModel: ChatVi
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
@@ -105,7 +110,7 @@ fun ChatScreen(navController: NavController, userName: String, viewModel: ChatVi
                 )
                 IconButton(onClick = {
                     if (messageText.isNotBlank()) {
-                        viewModel.sendMessage(messageText)
+                        viewModel.sendMessage(messageText, targetUserId)
                         messageText = ""
                     }
                 }) {

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material3.Icon
@@ -137,6 +138,27 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 androidx.compose.material3.Text("Waiting for user to join...", color = Color.White)
+            }
+        }
+
+        // Add Profile Button (Top Left)
+        if (remoteUid != 0) {
+            IconButton(
+                onClick = {
+                    Toast.makeText(context, "Profile Added to Chats!", Toast.LENGTH_SHORT).show()
+                    // TODO: Trigger backend API to save this match to Chats
+                },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PersonAdd,
+                    contentDescription = "Add Profile",
+                    tint = Color.White
+                )
             }
         }
 

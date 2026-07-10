@@ -2,55 +2,53 @@ package com.videoChatting.echat.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
+import com.videoChatting.echat.data.remote.ApiService
 import com.videoChatting.echat.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatsHomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val firestore: FirebaseFirestore
+    private val apiService: ApiService
 ) : ViewModel() {
 
     private val _interactedUsers = MutableStateFlow<List<DummyChat>>(emptyList())
     val interactedUsers: StateFlow<List<DummyChat>> = _interactedUsers
 
+    private val _pendingConsentCount = MutableStateFlow(0)
+    val pendingConsentCount: StateFlow<Int> = _pendingConsentCount
+
     fun loadInteractions() {
         val currentUserId = userRepository.getCurrentUserId() ?: return
         viewModelScope.launch {
             try {
-                val snapshot = firestore.collection("echat_users")
-                    .document(currentUserId)
-                    .collection("interactions")
-                    .get()
-                    .await()
-                
-                val list = snapshot.documents.map { doc ->
-                    val isLiked = doc.getBoolean("liked") == true
-                    val isAdded = doc.getBoolean("added") == true
-                    
-                    var subtitle = ""
-                    if (isLiked && isAdded) subtitle = "Liked & Added"
-                    else if (isLiked) subtitle = "Liked"
-                    else if (isAdded) subtitle = "Added"
-                    
-                    DummyChat(
-                        id = doc.id,
-                        name = "User ${doc.id.take(4)}",
-                        lastMessage = subtitle,
-                        time = "Just now",
-                        isLiked = isLiked,
-                        isAdded = isAdded
-                    )
+                // Fetch interactions
+                val response = apiService.getInteractions()
+                if (response.isSuccessful && response.body() != null) {
+                    val list = response.body()!!.interactions.map { item ->
+                        DummyChat(
+                            id = item.id,
+                            name = item.name,
+                            lastMessage = item.lastMessage,
+                            time = item.time,
+                            isLiked = item.isLiked,
+                            isAdded = item.isAdded
+                        )
+                    }
+                    _interactedUsers.value = list
                 }
-                _interactedUsers.value = list
+
+                // Fetch pending consents count
+                val consentResponse = apiService.getPendingConsents(currentUserId)
+                if (consentResponse.isSuccessful && consentResponse.body() != null) {
+                    _pendingConsentCount.value = consentResponse.body()!!.notifications.size
+                }
             } catch (e: Exception) {
-                // Ignore errors for demo
+                e.printStackTrace()
             }
         }
     }

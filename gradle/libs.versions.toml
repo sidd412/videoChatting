@@ -16,6 +16,11 @@ googleServices = "4.4.1"
 kotlinMetadata = "2.1.0"
 ksp = "2.1.0-1.0.29"
 commonsCodec = "1.15"
+retrofit = "2.9.0"
+okhttp = "4.12.0"
+socketio = "2.1.0"
+playServicesAuth = "21.1.1"
+playServicesLocation = "21.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,6 +53,13 @@ jetbrains-kotlin-metadata = { group = "org.jetbrains.kotlin", name = "kotlin-met
 commons-codec = { group = "commons-codec", name = "commons-codec", version.ref = "commonsCodec" }
 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navCompose" }
+
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+socket-io-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

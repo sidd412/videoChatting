@@ -2,12 +2,12 @@ package com.videoChatting.echat.presentation.discovery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.videoChatting.echat.domain.repository.MatchResult
+import com.videoChatting.echat.data.local.SessionManager
+import com.videoChatting.echat.data.remote.MatchResponse
+import com.videoChatting.echat.data.remote.SocketEvent
 import com.videoChatting.echat.domain.repository.MatchmakingRepository
 import com.videoChatting.echat.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,14 +17,15 @@ import javax.inject.Inject
 sealed class DiscoveryState {
     object Idle : DiscoveryState()
     object Searching : DiscoveryState()
-    data class Matched(val match: MatchResult) : DiscoveryState()
+    data class Matched(val match: MatchResponse) : DiscoveryState()
     data class Error(val message: String) : DiscoveryState()
 }
 
 @HiltViewModel
 class DiscoveryViewModel @Inject constructor(
     private val matchmakingRepository: MatchmakingRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DiscoveryState>(DiscoveryState.Idle)
@@ -33,19 +34,28 @@ class DiscoveryViewModel @Inject constructor(
     private val currentUserId: String? = userRepository.getCurrentUserId()
 
     init {
-        // Observe match status passively
+        // Observe Socket Matchmaking events in real-time
         viewModelScope.launch {
-            if (currentUserId != null) {
-                matchmakingRepository.observeMatchStatus(currentUserId).collect { match ->
-                    if (match != null) {
-                        _state.value = DiscoveryState.Matched(match)
+            matchmakingRepository.observeEvents().collect { event ->
+                when (event) {
+                    is SocketEvent.Searching -> {
+                        _state.value = DiscoveryState.Searching
+                    }
+                    is SocketEvent.MatchFound -> {
+                        _state.value = DiscoveryState.Matched(event.match)
+                    }
+                    is SocketEvent.PartnerLeft -> {
+                        // If partner leaves, automatically restart matching queue
+                        _state.value = DiscoveryState.Searching
+                        startDiscovery()
+                    }
+                    is SocketEvent.Error -> {
+                        _state.value = DiscoveryState.Error(event.message)
                     }
                 }
             }
         }
     }
-
-    private var searchJob: Job? = null
 
     fun startDiscovery() {
         if (currentUserId == null) {
@@ -54,33 +64,24 @@ class DiscoveryViewModel @Inject constructor(
         }
 
         _state.value = DiscoveryState.Searching
+
+        // Get coordinates from local user profile cache saved during onboarding
+        val profile = sessionManager.getUserProfile()
+        val lat = profile?.preferences?.let { 0.0 } ?: 0.0 // Coordinates can be read if stored, fallback to 0.0
+        val lng = profile?.preferences?.let { 0.0 } ?: 0.0
         
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            while (_state.value is DiscoveryState.Searching) {
-                val result = matchmakingRepository.findMatch(currentUserId)
-                if (result.isSuccess) {
-                    val match = result.getOrNull()
-                    if (match != null) {
-                        _state.value = DiscoveryState.Matched(match)
-                        break
-                    }
-                }
-                // Wait 3 seconds before trying again to handle simultaneous queue entries
-                delay(3000)
-            }
-        }
+        matchmakingRepository.joinQueue(longitude = lng, latitude = lat)
     }
 
     fun nextPerson() {
         if (currentUserId == null) return
         
-        searchJob?.cancel()
         viewModelScope.launch {
-            // Leave current match
-            matchmakingRepository.leaveMatch(currentUserId)
-            _state.value = DiscoveryState.Idle
-            // Immediately start searching again
+            // Inform server to disconnect current call and clear states
+            matchmakingRepository.endActiveCall()
+            _state.value = DiscoveryState.Searching
+            
+            // Re-join matchmaking queue
             startDiscovery()
         }
     }
@@ -99,10 +100,7 @@ class DiscoveryViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        currentUserId?.let {
-            viewModelScope.launch {
-                matchmakingRepository.leaveMatch(it)
-            }
-        }
+        // Disconnect sockets cleanly to remove user from active queues
+        matchmakingRepository.disconnect()
     }
 }

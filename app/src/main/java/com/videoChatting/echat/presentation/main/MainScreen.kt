@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -47,8 +48,8 @@ fun MainScreen(appNavController: NavController) {
                     ) 
                 }
                 composable("discovery") { DiscoveryScreen() }
-                composable("profile") { ProfileScreen() }
-                composable("settings") { SettingsScreen() }
+                composable("profile") { ProfileScreen(appNavController = appNavController) }
+                composable("settings") { SettingsScreen(appNavController = appNavController) }
             }
         }
     }
@@ -72,8 +73,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
             tonalElevation = 0.dp
         ) {
             NavigationBarItem(
-                icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                label = { Text("Home") },
+                icon = { Icon(Icons.Default.ChatBubble, contentDescription = "Chats") },
+                label = { Text("Chats") },
                 selected = currentRoute == "chats_home",
                 onClick = {
                     if (currentRoute != "chats_home") {
@@ -90,8 +91,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 )
             )
             NavigationBarItem(
-                icon = { Icon(Icons.Default.Explore, contentDescription = "Discovery") },
-                label = { Text("Omegle") },
+                icon = { Icon(Icons.Default.Explore, contentDescription = "Discover") },
+                label = { Text("Discover") },
                 selected = currentRoute == "discovery",
                 onClick = {
                     if (currentRoute != "discovery") {

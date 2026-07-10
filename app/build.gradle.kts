@@ -77,6 +77,18 @@ dependencies {
     implementation(libs.agora.rtc)
     implementation(libs.commons.codec)
 
+    // Retrofit & OkHttp
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
+
+    // Socket.io Client
+    implementation(libs.socket.io.client)
+
+    // Google Play Services
+    implementation(libs.play.services.auth)
+    implementation(libs.play.services.location)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -1,14 +1,12 @@
 package com.videoChatting.echat.domain.repository
 
+import com.videoChatting.echat.data.remote.SocketEvent
 import kotlinx.coroutines.flow.Flow
 
-data class MatchResult(
-    val channelName: String,
-    val matchedUserId: String
-)
-
 interface MatchmakingRepository {
-    suspend fun findMatch(currentUserId: String): Result<MatchResult>
-    suspend fun leaveMatch(currentUserId: String)
-    fun observeMatchStatus(currentUserId: String): Flow<MatchResult?>
+    fun joinQueue(longitude: Double, latitude: Double)
+    fun leaveQueue()
+    fun endActiveCall()
+    fun observeEvents(): Flow<SocketEvent>
+    fun disconnect()
 }

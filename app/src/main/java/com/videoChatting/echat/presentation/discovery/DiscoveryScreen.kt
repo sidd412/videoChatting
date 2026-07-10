@@ -126,18 +126,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
                 options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
 
-                val tokenBuilder = RtcTokenBuilder2()
-                val token = tokenBuilder.buildTokenWithUid(
-                    AGORA_APP_ID, 
-                    AGORA_APP_CERTIFICATE, 
-                    match.channelName, 
-                    0, 
-                    RtcTokenBuilder2.Role.ROLE_PUBLISHER, 
-                    86400, // Token validity
-                    86400 // Privilege validity
-                )
-
-                engine.joinChannel(token, match.channelName, 0, options)
+                // Use token pre-generated securely by the custom backend server
+                engine.joinChannel(match.token, match.channelName, 0, options)
 
             } catch (e: Exception) {
                 Toast.makeText(context, "Error joining channel", Toast.LENGTH_SHORT).show()
@@ -215,7 +205,11 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                         .align(Alignment.BottomStart)
                 ) {
-                    Text("Stranger", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (state is DiscoveryState.Matched) (state as DiscoveryState.Matched).match.partner.name else "Stranger",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 
                 // Shorts-style vertical action buttons
@@ -233,7 +227,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         onClick = { 
                             isLiked = !isLiked
                             if (state is DiscoveryState.Matched) {
-                                viewModel.toggleLike((state as DiscoveryState.Matched).match.matchedUserId, isLiked)
+                                viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
                             }
                         },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), shape = RoundedCornerShape(50))
@@ -249,7 +243,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         onClick = { 
                             isAdded = !isAdded
                             if (state is DiscoveryState.Matched) {
-                                viewModel.toggleAdd((state as DiscoveryState.Matched).match.matchedUserId, isAdded)
+                                viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
                             }
                         },
                         modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), shape = RoundedCornerShape(50))

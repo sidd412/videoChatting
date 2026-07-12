@@ -125,8 +125,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 val engine = rtcEngine ?: return@LaunchedEffect
                 
                 val options = ChannelMediaOptions()
-                options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
-                options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
+                options.clientRoleType = io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
+                options.channelProfile = io.agora.rtc2.Constants.CHANNEL_PROFILE_COMMUNICATION
 
                 // Use token pre-generated securely by the custom backend server
                 engine.joinChannel(match.token, match.channelName, 0, options)

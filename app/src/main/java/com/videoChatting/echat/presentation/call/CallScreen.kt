@@ -83,8 +83,8 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
                 engine.startPreview()
 
                 val options = ChannelMediaOptions()
-                options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
-                options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
+                options.clientRoleType = io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
+                options.channelProfile = io.agora.rtc2.Constants.CHANNEL_PROFILE_COMMUNICATION
 
                 engine.joinChannel(null, channelName, 0, options)
 

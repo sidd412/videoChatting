@@ -2,17 +2,12 @@ package com.videoChatting.echat.utils
 
 object Constants {
     // Development (Local) Server IP
-    // Jab aap mobile aur laptop dono ko same WiFi par rakhenge, toh laptop ka IP yahan daalna hai.
-    // Example: "192.168.31.117"
+    // Jab local par test karna ho toh is IP ka use karein
     private const val LOCAL_IP = "192.168.31.117"
     
-    // Server URLs
-    const val SOCKET_URL = "http://$LOCAL_IP:5000"
+    // Server URLs (Live Render Server)
+    const val SOCKET_URL = "https://echat-backend-uj78.onrender.com"
     const val BASE_URL = "$SOCKET_URL/api/"
-
-    // Jab app Production (Live) mein jayega, toh hum LOCAL_IP ko apne 
-    // Live Server/Domain ke link se replace kar denge, jaise:
-    // const val SOCKET_URL = "https://api.echatapp.com"
 
     // Third-party SDK Keys
     // Agar future mein alag se Dev aur Prod ke liye Agora account banana ho, 

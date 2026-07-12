@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,7 +27,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
-data class DummyChat(val id: String, val name: String, val lastMessage: String, val time: String, val isLiked: Boolean = false, val isAdded: Boolean = false)
+data class DummyChat(
+    val id: String, 
+    val name: String, 
+    val lastMessage: String, 
+    val time: String, 
+    val categories: List<String> = emptyList(),
+    val unreadCount: Int = 0,
+    val avatar: String = "",
+    val isLiked: Boolean = false,
+    val isAdded: Boolean = false
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,15 +53,16 @@ fun ChatsHomeScreen(
     }
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
-    val filters = listOf("All", "Liked", "Added")
+    val filters = listOf("All", "Liked", "Added", "Consent")
 
     val pendingConsentCount by viewModel.pendingConsentCount.collectAsState()
 
     val filteredChats = interactedUsers.filter { chat ->
         val matchesSearch = chat.name.contains(searchQuery, ignoreCase = true)
         val matchesFilter = when (selectedFilter) {
-            "Liked" -> chat.isLiked
-            "Added" -> chat.isAdded
+            "Liked" -> chat.categories.contains("liked")
+            "Added" -> chat.categories.contains("added")
+            "Consent" -> chat.categories.contains("consent")
             else -> true
         }
         matchesSearch && matchesFilter
@@ -60,6 +73,12 @@ fun ChatsHomeScreen(
             TopAppBar(
                 title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                 actions = {
+                    val currentCoins by viewModel.currentCoins.collectAsState()
+                    TextButton(onClick = { navController.navigate("wallet") }) {
+                        Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = Color(0xFFFFD700))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(currentCoins.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                    }
                     IconButton(onClick = { navController.navigate("consent_notifications") }) {
                         if (pendingConsentCount > 0) {
                             BadgedBox(badge = { Badge { Text(pendingConsentCount.toString()) } }) {
@@ -178,13 +197,35 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.size(56.dp)
         ) {
-            Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (chat.unreadCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(Color.Red),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (chat.unreadCount > 99) "99+" else chat.unreadCount.toString(),
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {

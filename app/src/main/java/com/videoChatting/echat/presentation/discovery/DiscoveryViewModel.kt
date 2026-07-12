@@ -31,6 +31,9 @@ class DiscoveryViewModel @Inject constructor(
     private val _state = MutableStateFlow<DiscoveryState>(DiscoveryState.Idle)
     val state: StateFlow<DiscoveryState> = _state.asStateFlow()
     
+    private val _currentCoins = MutableStateFlow(sessionManager.getUserProfile()?.coinsBalance ?: 0)
+    val currentCoins: StateFlow<Int> = _currentCoins.asStateFlow()
+
     private val currentUserId: String? = userRepository.getCurrentUserId()
 
     init {
@@ -52,6 +55,17 @@ class DiscoveryViewModel @Inject constructor(
                     is SocketEvent.Error -> {
                         _state.value = DiscoveryState.Error(event.message)
                     }
+                    is SocketEvent.ConsentNotification -> {
+                        // Ignore in Discovery screen
+                    }
+                    is SocketEvent.WalletUpdate -> {
+                        _currentCoins.value = event.coinsBalance
+                        sessionManager.updateCoins(event.coinsBalance)
+                    }
+                    is SocketEvent.InsufficientFunds -> {
+                        _state.value = DiscoveryState.Error(event.message)
+                        matchmakingRepository.endActiveCall()
+                    }
                 }
             }
         }
@@ -60,6 +74,11 @@ class DiscoveryViewModel @Inject constructor(
     fun startDiscovery() {
         if (currentUserId == null) {
             _state.value = DiscoveryState.Error("User not logged in")
+            return
+        }
+
+        if (_currentCoins.value < 10) {
+            _state.value = DiscoveryState.Error("Insufficient coins! (Min: 10)")
             return
         }
 

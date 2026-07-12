@@ -3,11 +3,13 @@ package com.videoChatting.echat.data.remote.model
 import com.google.gson.annotations.SerializedName
 
 data class GuestLoginRequest(
-    @SerializedName("name") val name: String?
+    @SerializedName("name") val name: String?,
+    @SerializedName("fcmToken") val fcmToken: String? = null
 )
 
 data class GoogleLoginRequest(
-    @SerializedName("idToken") val idToken: String
+    @SerializedName("idToken") val idToken: String,
+    @SerializedName("fcmToken") val fcmToken: String? = null
 )
 
 data class UserPreferencesDto(
@@ -25,7 +27,7 @@ data class UserDto(
     @SerializedName("avatar") val avatar: String? = null,
     @SerializedName("gender") val gender: String? = "Not Specified",
     @SerializedName("age") val age: Int? = null,
-    @SerializedName("availableMinutes") val availableMinutes: Int = 30,
+    @SerializedName("coinsBalance") val coinsBalance: Int? = 100,
     @SerializedName("preferences") val preferences: UserPreferencesDto? = UserPreferencesDto(),
     @SerializedName("country") val country: String = "Global"
 )
@@ -50,12 +52,27 @@ data class UpdateProfileRequest(
     @SerializedName("kmRadius") val kmRadius: Int? = null
 )
 
+data class UserProfileResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("profile") val profile: UserProfileDto
+)
+
+data class UserProfileDto(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("avatar") val avatar: String?,
+    @SerializedName("isOnline") val isOnline: Boolean,
+    @SerializedName("lastSeen") val lastSeen: Long,
+    @SerializedName("coinsBalance") val coinsBalance: Int = 100
+)
+
 data class MessageDto(
     @SerializedName("messageId") val messageId: String,
     @SerializedName("chatId") val chatId: String,
     @SerializedName("senderId") val senderId: String,
     @SerializedName("text") val text: String,
-    @SerializedName("timestamp") val timestamp: Long
+    @SerializedName("timestamp") val timestamp: Long,
+    @SerializedName("readStatus") val readStatus: Boolean? = false
 )
 
 data class MessagesHistoryResponse(
@@ -72,8 +89,11 @@ data class ToggleInteractionRequest(
 data class InteractionUserDto(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
+    @SerializedName("avatar") val avatar: String = "",
     @SerializedName("lastMessage") val lastMessage: String,
     @SerializedName("time") val time: String,
+    @SerializedName("categories") val categories: List<String> = emptyList(),
+    @SerializedName("unreadCount") val unreadCount: Int = 0,
     @SerializedName("isLiked") val isLiked: Boolean,
     @SerializedName("isAdded") val isAdded: Boolean
 )

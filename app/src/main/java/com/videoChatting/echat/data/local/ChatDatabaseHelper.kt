@@ -25,6 +25,7 @@ class ChatDatabaseHelper @Inject constructor(
         private const val KEY_RECEIVER_ID = "receiverId"
         private const val KEY_TEXT = "text"
         private const val KEY_TIMESTAMP = "timestamp"
+        private const val KEY_READ_STATUS = "readStatus"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -34,7 +35,8 @@ class ChatDatabaseHelper @Inject constructor(
                 + KEY_SENDER_ID + " TEXT,"
                 + KEY_RECEIVER_ID + " TEXT,"
                 + KEY_TEXT + " TEXT,"
-                + KEY_TIMESTAMP + " INTEGER" + ")")
+                + KEY_TIMESTAMP + " INTEGER,"
+                + KEY_READ_STATUS + " INTEGER" + ")")
         db.execSQL(createTable)
     }
 
@@ -53,6 +55,7 @@ class ChatDatabaseHelper @Inject constructor(
             put(KEY_RECEIVER_ID, message.receiverId)
             put(KEY_TEXT, message.text)
             put(KEY_TIMESTAMP, message.timestamp)
+            put(KEY_READ_STATUS, if (message.readStatus) 1 else 0)
         }
         db.insertWithOnConflict(TABLE_MESSAGES, null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -70,6 +73,7 @@ class ChatDatabaseHelper @Inject constructor(
                     put(KEY_RECEIVER_ID, message.receiverId)
                     put(KEY_TEXT, message.text)
                     put(KEY_TIMESTAMP, message.timestamp)
+                    put(KEY_READ_STATUS, if (message.readStatus) 1 else 0)
                 }
                 db.insertWithOnConflict(TABLE_MESSAGES, null, values, SQLiteDatabase.CONFLICT_REPLACE)
             }
@@ -94,12 +98,22 @@ class ChatDatabaseHelper @Inject constructor(
                     senderId = cursor.getString(cursor.getColumnIndexOrThrow(KEY_SENDER_ID)),
                     receiverId = cursor.getColumnIndex(KEY_RECEIVER_ID).let { if (it != -1) cursor.getString(it) else "" },
                     text = cursor.getString(cursor.getColumnIndexOrThrow(KEY_TEXT)),
-                    timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_TIMESTAMP))
+                    timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_TIMESTAMP)),
+                    readStatus = cursor.getColumnIndex(KEY_READ_STATUS).let { if (it != -1) cursor.getInt(it) == 1 else false }
                 )
                 messagesList.add(message)
             } while (cursor.moveToNext())
         }
         cursor.close()
         return messagesList
+    }
+
+    // Update all messages in a chat to read
+    fun markAllAsRead(chatId: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(KEY_READ_STATUS, 1)
+        }
+        db.update(TABLE_MESSAGES, values, "$KEY_CHAT_ID = ?", arrayOf(chatId))
     }
 }

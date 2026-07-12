@@ -8,10 +8,12 @@ data class Message(
     val senderId: String = "",
     val receiverId: String = "",
     val text: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val readStatus: Boolean = false
 )
 
 interface MessageRepository {
     fun getMessages(chatId: String): Flow<List<Message>>
     suspend fun sendMessage(message: Message)
+    suspend fun markAsRead(chatId: String, senderId: String)
 }

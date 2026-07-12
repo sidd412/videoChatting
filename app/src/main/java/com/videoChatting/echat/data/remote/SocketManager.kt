@@ -26,6 +26,12 @@ class SocketManager @Inject constructor(
     private val _chatMessages = MutableSharedFlow<MessageDto>(extraBufferCapacity = 100)
     val chatMessages: SharedFlow<MessageDto> = _chatMessages.asSharedFlow()
 
+    private val _readReceipts = MutableSharedFlow<String>(extraBufferCapacity = 10)
+    val readReceipts: SharedFlow<String> = _readReceipts.asSharedFlow()
+
+    private val _userStatusEvents = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 10)
+    val userStatusEvents: SharedFlow<Pair<String, Boolean>> = _userStatusEvents.asSharedFlow()
+
     companion object {
         private const val TAG = "SocketManager"
         private const val SOCKET_URL = "http://192.168.31.117:5000"
@@ -96,6 +102,11 @@ class SocketManager @Inject constructor(
                     try {
                         val message = gson.fromJson(data.toString(), MessageDto::class.java)
                         _chatMessages.tryEmit(message)
+                        
+                        // Auto mark as read if currently on this chat screen
+                        if (com.videoChatting.echat.utils.ActiveChatManager.currentActiveChatId == message.senderId) {
+                            markAsRead(message.chatId, message.senderId)
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing receive_message", e)
                     }
@@ -115,6 +126,64 @@ class SocketManager @Inject constructor(
                 }
             }
 
+            socket?.on("message_read") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    Log.d(TAG, "👁️ Message Read: $data")
+                    val chatId = data.optString("chatId")
+                    if (chatId.isNotEmpty()) {
+                        _readReceipts.tryEmit(chatId)
+                    }
+                }
+            }
+
+            socket?.on("user_status_changed") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val userId = data.optString("userId")
+                    val isOnline = data.optBoolean("isOnline")
+                    if (userId.isNotEmpty()) {
+                        _userStatusEvents.tryEmit(Pair(userId, isOnline))
+                    }
+                }
+            }
+
+            socket?.on("wallet_update") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val coinsBalance = data.optInt("coinsBalance", -1)
+                    if (coinsBalance >= 0) {
+                        Log.d(TAG, "💰 Wallet Updated: $coinsBalance coins")
+                        val user = sessionManager.getUserProfile()
+                        if (user != null) {
+                            sessionManager.updateCoins(coinsBalance)
+                            _userStatusEvents.tryEmit(Pair(user.userId, true)) // trigger UI update
+                        }
+                    }
+                }
+            }
+
+            socket?.on("wallet_update") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val coinsBalance = data.optInt("coinsBalance")
+                    _matchEvents.tryEmit(SocketEvent.WalletUpdate(coinsBalance))
+                }
+            }
+
+            socket?.on("insufficient_funds") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val message = data.optString("message", "Insufficient funds")
+                    _matchEvents.tryEmit(SocketEvent.InsufficientFunds(message))
+                }
+            }
+
+            socket?.on("consent_notification") { args ->
+                Log.d(TAG, "🔔 Consent Notification Received via Socket!")
+                _matchEvents.tryEmit(SocketEvent.ConsentNotification)
+            }
+
             Log.d(TAG, "🔌 Calling socket.connect()...")
             socket?.connect()
         } catch (e: Exception) {
@@ -129,9 +198,15 @@ class SocketManager @Inject constructor(
             Log.e(TAG, "❌ Cannot register user - profile is NULL!")
             return
         }
-        val json = JSONObject().put("userId", profile.userId)
-        socket?.emit("register_user", json)
-        Log.d(TAG, "👤 Emitted register_user for ${profile.userId}")
+        
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            val fcmToken = if (task.isSuccessful) task.result else null
+            val json = JSONObject().put("userId", profile.userId).apply {
+                if (fcmToken != null) put("fcmToken", fcmToken)
+            }
+            socket?.emit("register_user", json)
+            Log.d(TAG, "👤 Emitted register_user for ${profile.userId} with fcmToken")
+        }
     }
 
     fun joinMatchQueue(
@@ -227,8 +302,28 @@ class SocketManager @Inject constructor(
         socket?.emit("send_message", data)
     }
 
+    fun sendInteractionAction(action: String, targetUserId: String) {
+        val profile = sessionManager.getUserProfile() ?: return
+        val json = JSONObject()
+            .put("action", action)
+            .put("userId", profile.userId)
+            .put("targetUserId", targetUserId)
+        Log.d(TAG, "Sending interaction: $json")
+        socket?.emit("interaction", json)
+    }
+
+    fun markAsRead(chatId: String, senderId: String) {
+        val profile = sessionManager.getUserProfile() ?: return
+        val json = JSONObject()
+            .put("chatId", chatId)
+            .put("senderId", senderId)
+            .put("receiverId", profile.userId)
+        Log.d(TAG, "Sending mark_as_read: $json")
+        socket?.emit("mark_as_read", json)
+    }
+
     fun disconnect() {
-        Log.d(TAG, "🔌 disconnect() called")
+        Log.d(TAG, "🔌 Disconnecting socket...")
         socket?.disconnect()
         socket = null
     }
@@ -239,6 +334,9 @@ sealed class SocketEvent {
     data class MatchFound(val match: MatchResponse) : SocketEvent()
     object PartnerLeft : SocketEvent()
     data class Error(val message: String) : SocketEvent()
+    object ConsentNotification : SocketEvent()
+    data class WalletUpdate(val coinsBalance: Int) : SocketEvent()
+    data class InsufficientFunds(val message: String) : SocketEvent()
 }
 
 data class MatchPartner(

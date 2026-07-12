@@ -45,7 +45,7 @@ class UserRepositoryImpl @Inject constructor(
                     gender = profile.gender ?: "Not Specified",
                     country = profile.country,
                     isOnline = true,
-                    availableMinutes = profile.availableMinutes
+                    availableMinutes = profile.coinsBalance ?: 100
                 )
             )
         }

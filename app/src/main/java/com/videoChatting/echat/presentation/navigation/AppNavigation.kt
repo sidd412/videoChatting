@@ -10,6 +10,10 @@ import com.videoChatting.echat.presentation.auth.AuthScreen
 import com.videoChatting.echat.presentation.call.CallScreen
 import com.videoChatting.echat.presentation.onboarding.OnboardingScreen
 import com.videoChatting.echat.presentation.splash.SplashScreen
+import android.content.Intent
+import androidx.navigation.NavHostController
+import androidx.compose.runtime.LaunchedEffect
+
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -30,13 +34,30 @@ sealed class Screen(val route: String) {
     object Privacy : Screen("privacy")
     object Theme : Screen("theme")
     object ConsentNotifications : Screen("consent_notifications")
+    object Wallet : Screen("wallet")
 }
 
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
+fun AppNavigation(navController: NavHostController, intent: Intent?) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
+
+    LaunchedEffect(intent) {
+        // FCM background notifications put data fields directly into the Intent extras.
+        // So we check "type" (from FCM data payload) OR "notification_type" (from our foreground service)
+        val type = intent?.getStringExtra("notification_type") ?: intent?.getStringExtra("type")
+        if (type == "CONSENT_REQUEST") {
+            navController.navigate(Screen.ConsentNotifications.route)
+        } else if (type == "CHAT_MESSAGE") {
+            val senderId = intent?.getStringExtra("senderId")
+            val senderName = intent?.getStringExtra("senderName")
+            if (senderId != null && senderName != null) {
+                navController.navigate(Screen.Chat.createRoute(senderId, senderName))
+            } else {
+                navController.navigate(Screen.Main.route)
+            }
+        }
+    }
 
     val navigateNext = {
         val profile = sessionManager.getUserProfile()
@@ -101,7 +122,7 @@ fun AppNavigation() {
             com.videoChatting.echat.presentation.settings.BuyMinutesScreen(navController)
         }
         composable(Screen.PurchaseHistory.route) {
-            com.videoChatting.echat.presentation.settings.PurchaseHistoryScreen(navController)
+            com.videoChatting.echat.presentation.wallet.MyPurchasesScreen(navController)
         }
         composable(Screen.Notifications.route) {
             com.videoChatting.echat.presentation.settings.PlaceholderScreen(navController, "Notification Settings")
@@ -114,6 +135,12 @@ fun AppNavigation() {
         }
         composable(Screen.ConsentNotifications.route) {
             com.videoChatting.echat.presentation.settings.ConsentNotificationsScreen(navController)
+        }
+        composable("blocked_list") {
+            com.videoChatting.echat.presentation.settings.BlockedListScreen(navController)
+        }
+        composable(Screen.Wallet.route) {
+            com.videoChatting.echat.presentation.wallet.WalletScreen(navController)
         }
     }
 }

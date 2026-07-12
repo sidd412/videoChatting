@@ -38,7 +38,8 @@ class MessageRepositoryImpl @Inject constructor(
                             chatId = it.chatId,
                             senderId = it.senderId,
                             text = it.text,
-                            timestamp = it.timestamp
+                            timestamp = it.timestamp,
+                            readStatus = it.readStatus ?: false
                         )
                     }
                     dbHelper.insertMessages(domainMessages)
@@ -58,10 +59,23 @@ class MessageRepositoryImpl @Inject constructor(
                         messageId = msgDto.messageId,
                         chatId = msgDto.chatId,
                         senderId = msgDto.senderId,
+                        receiverId = "",
                         text = msgDto.text,
-                        timestamp = msgDto.timestamp
+                        timestamp = msgDto.timestamp,
+                        readStatus = msgDto.readStatus ?: false
                     )
                     dbHelper.insertMessage(message)
+                    // Emit updated database list
+                    trySend(dbHelper.getMessages(chatId))
+                }
+            }
+        }
+
+        // 4. Listen to read receipts via Socket.io
+        val readReceiptJob = launch {
+            socketManager.readReceipts.collect { rChatId ->
+                if (rChatId == chatId) {
+                    dbHelper.markAllAsRead(chatId)
                     // Emit updated database list
                     trySend(dbHelper.getMessages(chatId))
                 }
@@ -71,6 +85,7 @@ class MessageRepositoryImpl @Inject constructor(
         awaitClose {
             fetchJob.cancel()
             socketJob.cancel()
+            readReceiptJob.cancel()
         }
     }
 
@@ -87,5 +102,12 @@ class MessageRepositoryImpl @Inject constructor(
             text = message.text,
             receiverId = receiverId
         )
+    }
+
+    override suspend fun markAsRead(chatId: String, senderId: String) {
+        // Update local DB
+        // Optionally, we could have a method in dbHelper to mark all messages from senderId in chatId as read
+        // For simplicity, just emitting the socket event which is most critical
+        socketManager.markAsRead(chatId, senderId)
     }
 }

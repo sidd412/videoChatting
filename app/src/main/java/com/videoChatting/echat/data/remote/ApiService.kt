@@ -26,10 +26,23 @@ interface ApiService {
         @Body request: com.videoChatting.echat.data.remote.model.UpdateProfileRequest
     ): Response<AuthResponse>
 
+    @GET("auth/profile/{userId}")
+    suspend fun getUserProfile(
+        @Path("userId") userId: String
+    ): Response<com.videoChatting.echat.data.remote.model.UserProfileResponse>
+
     @GET("chat/{chatId}/messages")
     suspend fun getMessages(
         @Path("chatId") chatId: String
     ): Response<com.videoChatting.echat.data.remote.model.MessagesHistoryResponse>
+
+    @GET("block/list")
+    suspend fun getBlockedList(): Response<com.videoChatting.echat.presentation.settings.BlockedListResponse>
+
+    @POST("block/unblock")
+    suspend fun unblockUser(
+        @Body request: com.videoChatting.echat.presentation.settings.UnblockRequest
+    ): Response<com.videoChatting.echat.presentation.settings.UnblockResponse>
 
     @POST("auth/interaction")
     suspend fun toggleInteraction(
@@ -53,4 +66,17 @@ interface ApiService {
     suspend fun revokeConsent(
         @Body request: com.videoChatting.echat.data.remote.model.RevokeConsentRequest
     ): Response<com.videoChatting.echat.data.remote.model.RespondConsentResponse>
+
+    @POST("payment/create-order")
+    suspend fun createPaymentOrder(
+        @Body request: com.videoChatting.echat.presentation.wallet.CreateOrderRequest
+    ): Response<com.videoChatting.echat.presentation.wallet.CreateOrderResponse>
+
+    @GET("payment/verify/{orderId}")
+    suspend fun verifyPayment(
+        @retrofit2.http.Path("orderId") orderId: String
+    ): Response<com.videoChatting.echat.presentation.wallet.VerifyPaymentResponse>
+
+    @GET("payment/history")
+    suspend fun getPurchaseHistory(): Response<com.videoChatting.echat.presentation.wallet.PurchaseHistoryResponse>
 }

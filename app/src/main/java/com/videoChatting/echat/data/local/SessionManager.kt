@@ -40,10 +40,10 @@ class SessionManager @Inject constructor(context: Context) {
         }
     }
 
-    fun updateMinutes(minutes: Int) {
+    fun updateCoins(coins: Int) {
         val currentUser = getUserProfile()
         if (currentUser != null) {
-            saveUserProfile(currentUser.copy(availableMinutes = minutes))
+            saveUserProfile(currentUser.copy(coinsBalance = coins))
         }
     }
 

@@ -9,6 +9,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.History
@@ -53,10 +55,10 @@ fun SettingsScreen(appNavController: NavController? = null) {
         Text("Wallet & Billing", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         SettingsItem(
-            icon = Icons.Default.Payment, 
-            title = "Buy Minutes", 
-            subtitle = "Recharge your account",
-            onClick = { appNavController?.navigate(Screen.BuyMinutes.route) }
+            icon = Icons.Default.MonetizationOn, 
+            title = "My Wallet", 
+            subtitle = "View balance and buy coins",
+            onClick = { appNavController?.navigate("wallet") }
         )
         Spacer(modifier = Modifier.height(8.dp))
         SettingsItem(
@@ -81,6 +83,13 @@ fun SettingsScreen(appNavController: NavController? = null) {
             icon = Icons.Default.Security, 
             title = "Privacy Settings", 
             onClick = { appNavController?.navigate(Screen.Privacy.route) }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        SettingsItem(
+            icon = Icons.Default.Security, 
+            title = "Blocked Users", 
+            subtitle = "Manage blocked profiles",
+            onClick = { appNavController?.navigate("blocked_list") }
         )
         Spacer(modifier = Modifier.height(8.dp))
         SettingsItem(

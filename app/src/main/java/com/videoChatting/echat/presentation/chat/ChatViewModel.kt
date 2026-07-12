@@ -18,20 +18,54 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val socketManager: com.videoChatting.echat.data.remote.SocketManager
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages.asStateFlow()
 
+    private val _onlineStatus = MutableStateFlow<String>("")
+    val onlineStatus: StateFlow<String> = _onlineStatus.asStateFlow()
+
     private var currentChatId: String = ""
     val currentUserId: String? = userRepository.getCurrentUserId()
 
-    fun loadMessages(chatId: String) {
+    private var messagesJob: kotlinx.coroutines.Job? = null
+    private var statusJob: kotlinx.coroutines.Job? = null
+
+    fun loadMessages(chatId: String, targetUserId: String) {
         currentChatId = chatId
-        viewModelScope.launch {
+        
+        messagesJob?.cancel()
+        messagesJob = viewModelScope.launch {
             messageRepository.getMessages(chatId).collect { msgs ->
                 _messages.value = msgs
+            }
+        }
+        
+        statusJob?.cancel()
+        statusJob = viewModelScope.launch {
+            socketManager.userStatusEvents.collect { (userId, isOnline) ->
+                if (userId == targetUserId) {
+                    _onlineStatus.value = if (isOnline) "Online" else ""
+                }
+            }
+        }
+        
+        fetchOnlineStatus(targetUserId)
+    }
+
+    private fun fetchOnlineStatus(targetUserId: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getUserProfile(targetUserId)
+                if (response.isSuccessful && response.body() != null) {
+                    val profile = response.body()!!.profile
+                    _onlineStatus.value = if (profile.isOnline) "Online" else "" // Can expand to format lastSeen later
+                }
+            } catch (e: Exception) {
+                // Ignore failure
             }
         }
     }
@@ -48,6 +82,12 @@ class ChatViewModel @Inject constructor(
                 text = text
             )
             messageRepository.sendMessage(message)
+        }
+    }
+
+    fun markAsRead(chatId: String, senderId: String) {
+        viewModelScope.launch {
+            messageRepository.markAsRead(chatId, senderId)
         }
     }
 

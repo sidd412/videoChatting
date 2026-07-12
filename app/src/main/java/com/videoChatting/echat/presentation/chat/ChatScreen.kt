@@ -36,15 +36,31 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
     }
     
     LaunchedEffect(chatId) {
-        viewModel.loadMessages(chatId)
+        viewModel.loadMessages(chatId, targetUserId)
+        viewModel.markAsRead(chatId, targetUserId)
+    }
+
+    DisposableEffect(targetUserId) {
+        com.videoChatting.echat.utils.ActiveChatManager.currentActiveChatId = targetUserId
+        onDispose {
+            com.videoChatting.echat.utils.ActiveChatManager.currentActiveChatId = null
+        }
     }
     
     val messages by viewModel.messages.collectAsState()
+    val onlineStatus by viewModel.onlineStatus.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(userName, fontWeight = FontWeight.Bold) },
+                title = { 
+                    Column {
+                        Text(userName, fontWeight = FontWeight.Bold)
+                        if (onlineStatus.isNotEmpty()) {
+                            Text(onlineStatus, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -81,7 +97,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
             ) {
                 items(messages.reversed()) { msg ->
                     val isMine = msg.senderId == currentUserId
-                    ChatBubble(message = msg.text, isMine = isMine)
+                    ChatBubble(message = msg.text, isMine = isMine, readStatus = msg.readStatus)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -122,7 +138,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
 }
 
 @Composable
-fun ChatBubble(message: String, isMine: Boolean) {
+fun ChatBubble(message: String, isMine: Boolean, readStatus: Boolean) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
@@ -140,11 +156,22 @@ fun ChatBubble(message: String, isMine: Boolean) {
                 .background(if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer)
                 .padding(12.dp)
         ) {
-            Text(
-                text = message,
-                color = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-                fontSize = 16.sp
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = message,
+                    color = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontSize = 16.sp
+                )
+                if (isMine) {
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (readStatus) "✓✓" else "✓",
+                        color = if (readStatus) Color.Cyan else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

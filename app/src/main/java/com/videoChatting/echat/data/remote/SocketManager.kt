@@ -34,7 +34,6 @@ class SocketManager @Inject constructor(
 
     companion object {
         private const val TAG = "SocketManager"
-        private const val SOCKET_URL = "http://192.168.31.117:5000"
     }
 
     fun connect() {
@@ -49,7 +48,7 @@ class SocketManager @Inject constructor(
                 forceNew = true
                 reconnection = true
             }
-            socket = IO.socket(SOCKET_URL, opts)
+            socket = IO.socket(com.videoChatting.echat.utils.Constants.SOCKET_URL, opts)
             Log.d(TAG, "🔌 Socket created, attaching listeners...")
 
             socket?.on(Socket.EVENT_CONNECT) {

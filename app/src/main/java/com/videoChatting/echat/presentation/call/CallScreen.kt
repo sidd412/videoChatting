@@ -29,10 +29,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.videoChatting.echat.utils.Constants
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
-
-const val AGORA_APP_ID = "021fba375e4b4a73828c10923e12627c"
 
 @Composable
 fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
@@ -54,7 +53,7 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
             try {
                 val config = RtcEngineConfig()
                 config.mContext = context.applicationContext
-                config.mAppId = AGORA_APP_ID
+                config.mAppId = Constants.AGORA_APP_ID
                 config.mEventHandler = object : IRtcEngineEventHandler() {
                     override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
                         super.onJoinChannelSuccess(channel, uid, elapsed)

@@ -36,11 +36,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.videoChatting.echat.utils.Constants
 import io.agora.media.RtcTokenBuilder2
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
 
-const val AGORA_APP_ID = "021fba375e4b4a73828c10923e12627c"
 const val AGORA_APP_CERTIFICATE = "e9b8eba92d474ff886c7cb235c181b99"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,7 +86,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
         try {
             val config = RtcEngineConfig()
             config.mContext = context.applicationContext
-            config.mAppId = AGORA_APP_ID
+            config.mAppId = Constants.AGORA_APP_ID
             config.mEventHandler = object : IRtcEngineEventHandler() {
                 override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
                     agoraStatus = "Joined channel!"

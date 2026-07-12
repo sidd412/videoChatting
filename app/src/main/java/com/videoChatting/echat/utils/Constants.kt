@@ -13,4 +13,9 @@ object Constants {
     // Jab app Production (Live) mein jayega, toh hum LOCAL_IP ko apne 
     // Live Server/Domain ke link se replace kar denge, jaise:
     // const val SOCKET_URL = "https://api.echatapp.com"
+
+    // Third-party SDK Keys
+    // Agar future mein alag se Dev aur Prod ke liye Agora account banana ho, 
+    // toh aap easily yahan change kar sakte hain.
+    const val AGORA_APP_ID = "021fba375e4b4a73828c10923e12627c"
 }

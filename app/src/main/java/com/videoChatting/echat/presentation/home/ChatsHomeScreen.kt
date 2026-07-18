@@ -169,8 +169,9 @@ fun ChatsHomeScreen(
                     FilterChip(
                         selected = selectedFilter == filter,
                         onClick = { selectedFilter = filter },
-                        label = { Text(filter) },
-                        shape = RoundedCornerShape(35.dp)
+                        label = { Text(filter, fontSize = 12.sp) },
+                        shape = RoundedCornerShape(35.dp),
+                        modifier = Modifier.height(28.dp)
                     )
                 }
             }
@@ -202,7 +203,8 @@ fun ChatsHomeScreen(
                         )
                     }
                 }
-            } else {
+            }
+            else {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth()
                 ) {

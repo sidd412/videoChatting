@@ -24,6 +24,7 @@ import com.videoChatting.echat.presentation.discovery.DiscoveryScreen
 import com.videoChatting.echat.presentation.home.ChatsHomeScreen
 import com.videoChatting.echat.presentation.profile.ProfileScreen
 import com.videoChatting.echat.presentation.settings.SettingsScreen
+import com.videoChatting.echat.presentation.theme.*
 
 @Composable
 fun MainScreen(appNavController: NavController) {
@@ -63,7 +64,7 @@ fun GlassmorphicBottomBar(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF121212))
+            .background(ObsidianBlack)
             .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavigationBar(
@@ -85,8 +86,10 @@ fun GlassmorphicBottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = ElectricIndigo,
+                    selectedTextColor = ElectricIndigo,
                     unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
                     indicatorColor = Color.Transparent
                 )
             )
@@ -103,8 +106,10 @@ fun GlassmorphicBottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = ElectricIndigo,
+                    selectedTextColor = ElectricIndigo,
                     unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
                     indicatorColor = Color.Transparent
                 )
             )
@@ -121,8 +126,10 @@ fun GlassmorphicBottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = ElectricIndigo,
+                    selectedTextColor = ElectricIndigo,
                     unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
                     indicatorColor = Color.Transparent
                 )
             )
@@ -139,8 +146,10 @@ fun GlassmorphicBottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = ElectricIndigo,
+                    selectedTextColor = ElectricIndigo,
                     unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
                     indicatorColor = Color.Transparent
                 )
             )

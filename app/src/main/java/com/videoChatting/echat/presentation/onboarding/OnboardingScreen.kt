@@ -114,7 +114,7 @@ fun OnboardingScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(CyberMidnight)) {
+            Column(modifier = Modifier.background(CyberMidnight).statusBarsPadding()) {
                 LinearProgressIndicator(
                     progress = { (currentStep) / 4f },
                     modifier = Modifier.fillMaxWidth().height(6.dp),

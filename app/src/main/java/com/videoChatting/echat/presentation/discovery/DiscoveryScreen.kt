@@ -307,6 +307,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         val currentCoins by viewModel.currentCoins.collectAsState()
                         Box(
                             modifier = Modifier
+                                .statusBarsPadding()
                                 .padding(16.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(GlassBackground)

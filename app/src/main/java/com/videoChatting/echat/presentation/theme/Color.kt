@@ -2,19 +2,19 @@ package com.videoChatting.echat.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Premium Cyber-Midnight & Neon Color Palette
-val CyberMidnight = Color(0xFF07050E)
-val ObsidianBlack = Color(0xFF0F0B1E)
-val DeepIndigo = Color(0xFF16112C)
+// Premium Cyber-Midnight & Neon Color Palette (Vibrant for Glassmorphism)
+val CyberMidnight = Color(0xFF0C091A)
+val ObsidianBlack = Color(0xFF17113A)
+val DeepIndigo = Color(0xFF221956)
 
 val ElectricIndigo = Color(0xFF7C3AED)
 val ElectricViolet = Color(0xFF8B5CF6)
 val CyberCyan = Color(0xFF06B6D4)
 val NeonRose = Color(0xFFF43F5E)
 
-val GlassBackground = Color(0x0FFFFFFF) // White with 6% opacity
-val GlassBorder = Color(0x2BFFFFFF)     // White with 17% opacity
-val GlassBorderSelected = Color(0x66FFFFFF) // White with 40% opacity
+val GlassBackground = Color(0x14FFFFFF) // White with 8% opacity for better frosted effect
+val GlassBorder = Color(0x24FFFFFF)     // White with 14% opacity for clean thin glass borders
+val GlassBorderSelected = Color(0x73FFFFFF) // White with 45% opacity for active borders
 
 // Basic theme mappings (to avoid compile breakages)
 val Primary = ElectricIndigo

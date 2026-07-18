@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Premium Liquid Background Gradient
+// Rich Premium Background Gradient for beautiful Glassmorphism blending
 val PremiumBackgroundGradient = Brush.verticalGradient(
     colors = listOf(
         CyberMidnight,
@@ -39,7 +39,7 @@ private val LightColorScheme = lightColorScheme(
     primary = ElectricIndigo,
     secondary = CyberCyan,
     tertiary = NeonRose,
-    background = Color(0xFFF8FAFC), // Very soft Slate white for light mode
+    background = Color(0xFFF8FAFC),
     surface = Color.White,
     onPrimary = Color.White,
     onSecondary = Color.Black,

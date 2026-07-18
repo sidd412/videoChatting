@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Videocam
@@ -210,7 +211,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator(color = CyberCyan, strokeWidth = 3.dp)
             }
-        } else if (state is DiscoveryState.Error) {
+        }
+        else if (state is DiscoveryState.Error) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -268,7 +270,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
                 }
             }
-        } else {
+        }
+        else {
             // Active split screen for video chat
             Column(modifier = Modifier.fillMaxSize()) {
                 // Top Half: Remote Video
@@ -296,10 +299,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         Box(
                             modifier = Modifier
                                 .padding(16.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(cardBackground)
-                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
+//                                .clip(RoundedCornerShape(12.dp))
+//                                .background(cardBackground)
+//                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
+//                                .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .align(Alignment.BottomStart)
                         ) {
                             Text(
@@ -313,22 +316,22 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         val currentCoins by viewModel.currentCoins.collectAsState()
                         Box(
                             modifier = Modifier
-                                .statusBarsPadding()
-                                .padding(16.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(cardBackground)
-                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
+//                                .statusBarsPadding()
+                                .padding(end = 16.dp, top = 24.dp)
+//                                .clip(RoundedCornerShape(16.dp))
+//                                .background(cardBackground)
+//                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
+//                                .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .align(Alignment.TopEnd)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Default.Star,
+                                    imageVector = Icons.Default.MonetizationOn,
                                     contentDescription = "Coins",
                                     tint = CoinGold,
                                     modifier = Modifier.size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width(2.dp))
                                 Text(
                                     text = "$currentCoins",
                                     color = Color.White,
@@ -440,10 +443,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     Box(
                         modifier = Modifier
                             .padding(16.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(cardBackground)
-                            .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+//                            .clip(RoundedCornerShape(12.dp))
+//                            .background(cardBackground)
+//                            .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
+//                            .padding(horizontal = 12.dp, vertical = 6.dp)
                             .align(Alignment.TopStart)
                     ) {
                         Text("You", color = Color.White, fontWeight = FontWeight.Bold)
@@ -456,7 +459,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             .padding(bottom = 24.dp)
                             .background(cardBackground, shape = RoundedCornerShape(32.dp))
                             .border(BorderStroke(1.dp, cardBorder), shape = RoundedCornerShape(32.dp))
-                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

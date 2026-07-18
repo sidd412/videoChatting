@@ -30,7 +30,8 @@ fun getThemeBackgroundGradient(): Brush {
 
 @Composable
 fun getThemeGlassBackground(): Color {
-    return if (isSystemInDarkTheme()) GlassBackground else Color.White.copy(alpha = 0.9f)
+    return  GlassBackground
+//    return if (isSystemInDarkTheme()) GlassBackground else Color.White.copy(alpha = 0.2f)
 }
 
 @Composable

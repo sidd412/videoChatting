@@ -1,12 +1,14 @@
 package com.videoChatting.echat.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MonetizationOn
@@ -72,7 +74,6 @@ fun ChatsHomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.statusBarsPadding(),
                 title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                 actions = {
                     val currentCoins by viewModel.currentCoins.collectAsState()
@@ -138,7 +139,8 @@ fun ChatsHomeScreen(
                     FilterChip(
                         selected = selectedFilter == filter,
                         onClick = { selectedFilter = filter },
-                        label = { Text(filter) }
+                        label = { Text(filter) },
+                        shape = RoundedCornerShape(25.dp)
                     )
                 }
             }

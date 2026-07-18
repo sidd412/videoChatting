@@ -75,30 +75,77 @@ fun ChatsHomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
-                actions = {
-                    val currentCoins by viewModel.currentCoins.collectAsState()
-                    TextButton(onClick = { navController.navigate("wallet") }) {
-                        Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(currentCoins.toString(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    }
-                    IconButton(onClick = { navController.navigate("consent_notifications") }) {
-                        if (pendingConsentCount > 0) {
-                            BadgedBox(badge = { Badge { Text(pendingConsentCount.toString()) } }) {
+            Column(modifier = Modifier.padding(bottom = 10.dp)){
+                // Title bar
+                TopAppBar(
+                    title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
+                    actions = {
+                        val currentCoins by viewModel.currentCoins.collectAsState()
+                        TextButton(onClick = { navController.navigate("wallet") }) {
+                            Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(currentCoins.toString(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        }
+                        IconButton(onClick = { navController.navigate("consent_notifications") }) {
+                            if (pendingConsentCount > 0) {
+                                BadgedBox(badge = { Badge { Text(pendingConsentCount.toString()) } }) {
+                                    Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                                }
+                            } else {
                                 Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                             }
-                        } else {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                        }
+                    },
+                    windowInsets = WindowInsets(top = 0.dp),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+
+                // Search Bar
+                BasicTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(42.dp) // 25% height reduction from standard 56.dp
+                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                        .padding(horizontal = 16.dp),
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp
+                    ),
+                    decorationBox = { innerTextField ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier.weight(1f),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (searchQuery.isEmpty()) {
+                                    Text(
+                                        text = "Search...",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        fontSize = 14.sp
+                                    )
+                                }
+                                innerTextField()
+                            }
                         }
                     }
-                },
-                windowInsets = WindowInsets(top = 0.dp),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
                 )
-            )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -113,108 +160,66 @@ fun ChatsHomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = 115.dp)
+//                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Search Bar
-            BasicTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(42.dp) // 25% height reduction from standard 56.dp
-                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                    .padding(horizontal = 16.dp),
-                singleLine = true,
-                textStyle = TextStyle(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp
-                ),
-                decorationBox = { innerTextField ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.CenterStart
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 20.dp)
+                ) {
+                    // Filters
+                    item {
+                        LazyRow(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    text = "Search...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    fontSize = 14.sp
+                            items(filters,key = {it}) { filter ->
+                                FilterChip(
+                                    selected = selectedFilter == filter,
+                                    onClick = { selectedFilter = filter },
+                                    label = { Text(filter, fontSize = 12.sp) },
+                                    shape = RoundedCornerShape(35.dp),
+                                    modifier = Modifier.height(31.dp)
                                 )
                             }
-                            innerTextField()
                         }
                     }
-                }
-            )
-
-            // Filters
-            LazyRow(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filters) { filter ->
-                    FilterChip(
-                        selected = selectedFilter == filter,
-                        onClick = { selectedFilter = filter },
-                        label = { Text(filter, fontSize = 12.sp) },
-                        shape = RoundedCornerShape(35.dp),
-                        modifier = Modifier.height(28.dp)
-                    )
-                }
-            }
-
-            if (filteredChats.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Empty",
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "No chats yet.",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Start discovering people to chat!",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                        )
+                    if (filteredChats.isEmpty()) {
+                        item{
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Empty",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "No chats yet.",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Start discovering people to chat!",
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                    else {
                     items(filteredChats) { chat ->
                         ChatItem(chat = chat) {
                             navController.navigate("chat/${chat.id}/${chat.name}")
                         }
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
                     }
                 }
             }

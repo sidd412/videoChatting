@@ -1,6 +1,8 @@
 package com.videoChatting.echat.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -115,20 +117,47 @@ fun ChatsHomeScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Search Bar
-            OutlinedTextField(
+            BasicTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .height(50.dp), // Reduced height
-                placeholder = { Text("Search...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                shape = CircleShape,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
+                    .height(42.dp) // 25% height reduction from standard 56.dp
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    .padding(horizontal = 16.dp),
+                singleLine = true,
+                textStyle = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp
+                ),
+                decorationBox = { innerTextField ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (searchQuery.isEmpty()) {
+                                Text(
+                                    text = "Search...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    fontSize = 14.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                }
             )
 
             // Filters
@@ -141,7 +170,7 @@ fun ChatsHomeScreen(
                         selected = selectedFilter == filter,
                         onClick = { selectedFilter = filter },
                         label = { Text(filter) },
-                        shape = RoundedCornerShape(25.dp)
+                        shape = RoundedCornerShape(35.dp)
                     )
                 }
             }

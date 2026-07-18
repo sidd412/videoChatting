@@ -8,22 +8,31 @@ import android.location.Geocoder
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -91,6 +100,8 @@ fun OnboardingScreen(
         }
     }
 
+    var currentStep by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(state) {
         if (state is OnboardingState.Success) {
             onOnboardingFinished()
@@ -101,236 +112,530 @@ fun OnboardingScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Setup Profile", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
-            )
+            Column {
+                LinearProgressIndicator(
+                    progress = { (currentStep) / 4f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (currentStep > 0) {
+                        IconButton(onClick = { currentStep-- }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(48.dp))
+                    }
+                    
+                    Text(
+                        text = "Step ${currentStep + 1} of 5",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                    )
+
+                    // Skip preferences option (only in preferences step)
+                    if (currentStep == 4) {
+                        TextButton(onClick = {
+                            viewModel.submitOnboarding(
+                                name = name,
+                                gender = gender,
+                                age = age.toInt(),
+                                country = country,
+                                longitude = longitude,
+                                latitude = latitude,
+                                prefGender = "All",
+                                prefMinAge = 18,
+                                prefMaxAge = 99,
+                                filterType = "country",
+                                kmRadius = 50
+                            )
+                        }) {
+                            Text("Skip", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(48.dp))
+                    }
+                }
+            }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // 1. Name Input
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Display Name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            // 2. Gender Selection
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Your Gender", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    listOf("Male", "Female", "Other").forEach { g ->
-                        val selected = gender == g
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable { gender = g },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = g,
-                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 3. Age Selection
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Your Age", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                    Text("${age.toInt()} Years", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                }
-                Slider(
-                    value = age,
-                    onValueChange = { age = it },
-                    valueRange = 18f..99f,
-                    steps = 81
-                )
-            }
-
-            // 4. Geolocation Detection
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Your Location", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                Button(
-                    onClick = {
-                        val permissions = arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
                         )
-                        val hasPermission = permissions.all {
-                            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                    )
+                )
+        ) {
+            AnimatedContent(
+                targetState = currentStep,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> -width } + fadeOut()
+                        )
+                    } else {
+                        (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> width } + fadeOut()
+                        )
+                    }
+                },
+                label = "stepAnimation"
+            ) { step ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    when (step) {
+                        0 -> {
+                            // Step 0: Welcome Screen
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("👋", fontSize = 56.sp)
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Welcome to eChat!",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Let's personalize your card so you can match with interesting people worldwide in seconds.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Button(
+                                onClick = { currentStep = 1 },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                            }
                         }
-                        if (hasPermission) {
-                            locationStatus = "Detecting location..."
-                            fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
-                                if (loc != null) {
-                                    latitude = loc.latitude
-                                    longitude = loc.longitude
-                                    try {
-                                        val geocoder = Geocoder(context, Locale.getDefault())
-                                        val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-                                        country = addresses?.firstOrNull()?.countryName ?: "Global"
-                                        locationStatus = "Detected: $country (${String.format("%.2f", loc.latitude)}, ${String.format("%.2f", loc.longitude)})"
-                                    } catch (e: Exception) {
-                                        country = "Global"
-                                        locationStatus = "Detected Coordinates: (${String.format("%.2f", loc.latitude)}, ${String.format("%.2f", loc.longitude)})"
-                                    }
-                                } else {
-                                    locationStatus = "Failed to detect automatically."
+                        1 -> {
+                            // Step 1: Name Input
+                            Text(
+                                text = "What should we call you?",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "Choose a display name that others will see during chat.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                            
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(24.dp)) {
+                                    OutlinedTextField(
+                                        value = name,
+                                        onValueChange = { if (it.length <= 20) name = it },
+                                        label = { Text("Display Name") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "${name.length}/20 characters",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.align(Alignment.End),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
                                 }
                             }
-                        } else {
-                            locationPermissionLauncher.launch(permissions)
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { currentStep = 2 },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = name.isNotBlank()
+                            ) {
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                ) {
-                    Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Detect Location via GPS", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                }
-                Text(
-                    text = locationStatus,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
-            }
-
-            HorizontalDivider()
-
-            // 5. Match Preferences Section Header
-            Text("Match Preferences", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
-
-            // 6. Match Gender Preference
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Look For", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    listOf("Male", "Female", "All").forEach { pref ->
-                        val selected = prefGender == pref
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable { prefGender = pref },
-                            contentAlignment = Alignment.Center
-                        ) {
+                        2 -> {
+                            // Step 2: Gender & Age
                             Text(
-                                text = pref,
-                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold
+                                text = "Tell us about yourself",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
-                        }
-                    }
-                }
-            }
+                            
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp),
+                                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                                ) {
+                                    Text("I identify as", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        listOf(
+                                            "Male" to "👨 Male",
+                                            "Female" to "👩 Female",
+                                            "Other" to "🧑 Other"
+                                        ).forEach { (g, label) ->
+                                            val selected = gender == g
+                                            Box(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(52.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        shape = RoundedCornerShape(12.dp)
+                                                    )
+                                                    .clickable { gender = g },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = label,
+                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                        }
+                                    }
 
-            // 7. Match Filter Preference
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Match Scope", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    listOf(
-                        "country" to "Same Country",
-                        "km" to "Distance Range"
-                    ).forEach { (type, label) ->
-                        val selected = filterType == type
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable { filterType = type },
-                            contentAlignment = Alignment.Center
-                        ) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("My age is", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            text = "${age.toInt()} Years",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Slider(
+                                        value = age,
+                                        onValueChange = { age = it },
+                                        valueRange = 18f..99f,
+                                        steps = 81,
+                                        colors = SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.primary,
+                                            activeTrackColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { currentStep = 3 },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        3 -> {
+                            // Step 3: Location
                             Text(
-                                text = label,
-                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold
+                                text = "Where are you located?",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
+                            
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    // Pulse / scan effect representation
+                                    Box(
+                                        modifier = Modifier.size(100.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                                        val pulseScale by infiniteTransition.animateFloat(
+                                            initialValue = 1f,
+                                            targetValue = 1.4f,
+                                            animationSpec = infiniteRepeatable(
+                                                animation = tween(1200, easing = LinearEasing),
+                                                repeatMode = RepeatMode.Restart
+                                            ),
+                                            label = "pulse"
+                                        )
+                                        val pulseAlpha by infiniteTransition.animateFloat(
+                                            initialValue = 0.6f,
+                                            targetValue = 0f,
+                                            animationSpec = infiniteRepeatable(
+                                                animation = tween(1200, easing = LinearEasing),
+                                                repeatMode = RepeatMode.Restart
+                                            ),
+                                            label = "pulse"
+                                        )
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .scale(pulseScale)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = pulseAlpha))
+                                        )
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .size(70.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.secondary),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp))
+                                        }
+                                    }
+
+                                    Text(
+                                        text = locationStatus,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Medium
+                                    )
+
+                                    Button(
+                                        onClick = {
+                                            val permissions = arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                            val hasPermission = permissions.all {
+                                                ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                                            }
+                                            if (hasPermission) {
+                                                locationStatus = "Detecting location..."
+                                                fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                                                    if (loc != null) {
+                                                        latitude = loc.latitude
+                                                        longitude = loc.longitude
+                                                        try {
+                                                            val geocoder = Geocoder(context, Locale.getDefault())
+                                                            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                                                            country = addresses?.firstOrNull()?.countryName ?: "Global"
+                                                            locationStatus = "Detected: $country (${String.format("%.2f", loc.latitude)}, ${String.format("%.2f", loc.longitude)})"
+                                                        } catch (e: Exception) {
+                                                            country = "Global"
+                                                            locationStatus = "Detected Coordinates: (${String.format("%.2f", loc.latitude)}, ${String.format("%.2f", loc.longitude)})"
+                                                        }
+                                                    } else {
+                                                        locationStatus = "Failed to detect automatically."
+                                                    }
+                                                }
+                                            } else {
+                                                locationPermissionLauncher.launch(permissions)
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                    ) {
+                                        Text("Find My GPS Location", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { currentStep = 4 },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        4 -> {
+                            // Step 4: Match Preferences
+                            Text(
+                                text = "Who are you looking for?",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp),
+                                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                                ) {
+                                    Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        listOf(
+                                            "Male" to "👨 Male",
+                                            "Female" to "👩 Female",
+                                            "All" to "🌍 All"
+                                        ).forEach { (pref, label) ->
+                                            val selected = prefGender == pref
+                                            Box(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(52.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        shape = RoundedCornerShape(12.dp)
+                                                    )
+                                                    .clickable { prefGender = pref },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = label,
+                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        listOf(
+                                            "country" to "Same Country",
+                                            "km" to "Distance Scope"
+                                        ).forEach { (type, label) ->
+                                            val selected = filterType == type
+                                            Box(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(52.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface)
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        shape = RoundedCornerShape(12.dp)
+                                                    )
+                                                    .clickable { filterType = type },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = label,
+                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    if (filterType == "km") {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text("Max Distance", fontWeight = FontWeight.SemiBold)
+                                            Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                                        }
+                                        Slider(
+                                            value = kmRadius,
+                                            onValueChange = { kmRadius = it },
+                                            valueRange = 10f..500f,
+                                            steps = 49
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = {
+                                    viewModel.submitOnboarding(
+                                        name = name,
+                                        gender = gender,
+                                        age = age.toInt(),
+                                        country = country,
+                                        longitude = longitude,
+                                        latitude = latitude,
+                                        prefGender = prefGender,
+                                        prefMinAge = 18,
+                                        prefMaxAge = 99,
+                                        filterType = filterType,
+                                        kmRadius = kmRadius.toInt()
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = state !is OnboardingState.Loading
+                            ) {
+                                if (state is OnboardingState.Loading) {
+                                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                                } else {
+                                    Text("Complete Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
-                }
-            }
-
-            // 8. Distance Radius Slider (Visible only if Distance Range is chosen)
-            if (filterType == "km") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Search Radius", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                        Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
-                    }
-                    Slider(
-                        value = kmRadius,
-                        onValueChange = { kmRadius = it },
-                        valueRange = 10f..500f,
-                        steps = 49
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 9. Complete Setup Button
-            Button(
-                onClick = {
-                    viewModel.submitOnboarding(
-                        name = name,
-                        gender = gender,
-                        age = age.toInt(),
-                        country = country,
-                        longitude = longitude,
-                        latitude = latitude,
-                        prefGender = prefGender,
-                        prefMinAge = 18,
-                        prefMaxAge = 99,
-                        filterType = filterType,
-                        kmRadius = kmRadius.toInt()
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.large,
-                enabled = state !is OnboardingState.Loading
-            ) {
-                if (state is OnboardingState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                } else {
-                    Text("Complete Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

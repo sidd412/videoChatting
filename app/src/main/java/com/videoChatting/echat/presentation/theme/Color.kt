@@ -16,6 +16,9 @@ val GlassBackground = Color(0x14FFFFFF) // White with 8% opacity for better fros
 val GlassBorder = Color(0x24FFFFFF)     // White with 14% opacity for clean thin glass borders
 val GlassBorderSelected = Color(0x73FFFFFF) // White with 45% opacity for active borders
 
+// Rich Gold/Amber coin color with high visibility on both light and dark backgrounds
+val CoinGold = Color(0xFFD97706)
+
 // Basic theme mappings (to avoid compile breakages)
 val Primary = ElectricIndigo
 val Secondary = CyberCyan

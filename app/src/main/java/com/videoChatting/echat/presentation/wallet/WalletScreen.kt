@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.theme.*
 
 data class CoinPack(
     val coins: Int,
@@ -99,7 +100,7 @@ fun WalletScreen(
                         Icon(
                             imageVector = Icons.Default.MonetizationOn,
                             contentDescription = "Coins",
-                            tint = Color(0xFFFFD700),
+                            tint = CoinGold,
                             modifier = Modifier.size(36.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -173,7 +174,7 @@ fun CoinPackItem(pack: CoinPack, isLoading: Boolean, onClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.MonetizationOn,
                     contentDescription = "Coins",
-                    tint = Color(0xFFFFD700),
+                    tint = CoinGold,
                     modifier = Modifier.size(28.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))

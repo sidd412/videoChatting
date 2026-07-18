@@ -37,6 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -236,7 +239,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .border(BorderStroke(1.5.dp, NeonRose), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Star, contentDescription = "Error Icon", tint = Color(0xFFFFD700), modifier = Modifier.size(36.dp))
+                            Icon(Icons.Default.Star, contentDescription = "Error Icon", tint = CoinGold, modifier = Modifier.size(36.dp))
                         }
                         
                         Text(
@@ -322,7 +325,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = "Coins",
-                                    tint = Color(0xFFFFD700),
+                                    tint = CoinGold,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))

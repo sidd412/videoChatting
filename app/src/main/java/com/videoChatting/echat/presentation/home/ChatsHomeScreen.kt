@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.theme.*
 
 data class DummyChat(
     val id: String, 
@@ -76,7 +77,7 @@ fun ChatsHomeScreen(
                 actions = {
                     val currentCoins by viewModel.currentCoins.collectAsState()
                     TextButton(onClick = { navController.navigate("wallet") }) {
-                        Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = Color(0xFFFFD700))
+                        Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(currentCoins.toString(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                     }

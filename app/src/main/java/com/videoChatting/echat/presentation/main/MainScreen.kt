@@ -60,11 +60,13 @@ fun MainScreen(appNavController: NavController) {
 fun GlassmorphicBottomBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val bottomBgColor = if (isDark) ObsidianBlack else Color.White
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ObsidianBlack)
+            .background(bottomBgColor)
             .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavigationBar(

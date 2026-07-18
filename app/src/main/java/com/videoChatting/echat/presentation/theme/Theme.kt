@@ -92,7 +92,7 @@ fun EChatTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = if (darkTheme) DeepIndigo.toArgb() else Color(0xFFE2E8F0).toArgb()
+            window.navigationBarColor = if (darkTheme) ObsidianBlack.toArgb() else Color.White.toArgb()
             
             val insetsController = WindowCompat.getInsetsController(window, view)
             insetsController.isAppearanceLightStatusBars = !darkTheme

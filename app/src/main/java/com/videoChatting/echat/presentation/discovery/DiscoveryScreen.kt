@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -592,7 +593,7 @@ fun RadarScanner(modifier: Modifier = Modifier) {
         // Sweep rotation overlay
         androidx.compose.foundation.Canvas(modifier = Modifier.size(220.dp)) {
             val radius = size.minDimension / 2
-            val center = size / 2f
+            val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
             
             // Draw outer radar circles
             drawCircle(
@@ -618,7 +619,7 @@ fun RadarScanner(modifier: Modifier = Modifier) {
                         colors = listOf(Color.Transparent, CyberCyan.copy(alpha = 0.6f))
                     ),
                     start = center,
-                    end = center.copy(x = center.x + radius),
+                    end = androidx.compose.ui.geometry.Offset(center.x + radius, center.y),
                     strokeWidth = 2.dp.toPx()
                 )
             }

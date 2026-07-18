@@ -645,4 +645,3 @@ fun RadarScanner(modifier: Modifier = Modifier) {
         }
     }
 }
-}

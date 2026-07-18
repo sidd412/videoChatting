@@ -62,6 +62,7 @@ fun GlassmorphicBottomBar(navController: NavController) {
     val currentRoute = navBackStackEntry?.destination?.route
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     val bottomBgColor = if (isDark) ObsidianBlack else Color.White
+    val unselectedColor = if (isDark) Color.White.copy(alpha = 0.6f) else Color(0xFF64748B)
 
     Box(
         modifier = Modifier
@@ -90,8 +91,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = ElectricIndigo,
                     selectedTextColor = ElectricIndigo,
-                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -110,8 +111,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = ElectricIndigo,
                     selectedTextColor = ElectricIndigo,
-                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -130,8 +131,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = ElectricIndigo,
                     selectedTextColor = ElectricIndigo,
-                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -150,8 +151,8 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = ElectricIndigo,
                     selectedTextColor = ElectricIndigo,
-                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor,
                     indicatorColor = Color.Transparent
                 )
             )

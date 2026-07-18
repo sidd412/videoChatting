@@ -92,6 +92,7 @@ fun ChatsHomeScreen(
                         }
                     }
                 },
+                windowInsets = WindowInsets(top = 0.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )

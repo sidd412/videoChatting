@@ -3,13 +3,13 @@ package com.videoChatting.echat.presentation.auth
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +20,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.videoChatting.echat.data.local.SessionManager
+import com.videoChatting.echat.presentation.theme.*
 
 @Composable
 fun AuthScreen(
@@ -81,33 +82,31 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
-                )
-            ),
+            .background(getThemeBackgroundGradient())
+            .statusBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
+        val textColor = getThemeTextColor()
+        val subTextColor = getThemeSubTextColor()
+        val cardBorder = getThemeGlassBorder()
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
                 text = "eChat",
-                fontSize = 42.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White
+                color = textColor
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Connect securely & instantly",
                 fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.7f)
+                color = subTextColor
             )
             Spacer(modifier = Modifier.height(64.dp))
-
-            // Continue as Guest Button
-            // Removed Guest Login Button as requested
 
             // Continue with Google Button
             OutlinedButton(
@@ -121,11 +120,15 @@ fun AuthScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
+                border = BorderStroke(1.dp, cardBorder),
                 enabled = state !is AuthState.Loading
             ) {
-                Text("Sign in with Google", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (state is AuthState.Loading) {
+                    CircularProgressIndicator(color = ElectricIndigo, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Sign in with Google", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

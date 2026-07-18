@@ -53,6 +53,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.statusBarsPadding(),
                 title = { 
                     Column {
                         Text(userName, fontWeight = FontWeight.Bold)

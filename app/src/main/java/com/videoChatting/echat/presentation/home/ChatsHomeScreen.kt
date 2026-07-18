@@ -71,13 +71,14 @@ fun ChatsHomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.statusBarsPadding(),
                 title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                 actions = {
                     val currentCoins by viewModel.currentCoins.collectAsState()
                     TextButton(onClick = { navController.navigate("wallet") }) {
                         Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = Color(0xFFFFD700))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(currentCoins.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(currentCoins.toString(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                     }
                     IconButton(onClick = { navController.navigate("consent_notifications") }) {
                         if (pendingConsentCount > 0) {
@@ -89,7 +90,6 @@ fun ChatsHomeScreen(
                         }
                     }
                 },
-                windowInsets = WindowInsets(top = 16.dp), // Reduces gap by overriding default status bar inset
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )

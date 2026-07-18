@@ -59,6 +59,7 @@ fun WalletScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.statusBarsPadding(),
                 title = { Text("Wallet", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
@@ -196,7 +197,8 @@ fun CoinPackItem(pack: CoinPack, isLoading: Boolean, onClick: () -> Unit) {
                 onClick = onClick,
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = ElectricIndigo,
+                    contentColor = Color.White
                 )
             ) {
                 Text("₹${pack.priceInInr}", fontWeight = FontWeight.Bold)

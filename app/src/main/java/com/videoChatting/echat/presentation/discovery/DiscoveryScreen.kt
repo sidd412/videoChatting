@@ -16,11 +16,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import com.videoChatting.echat.presentation.theme.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
@@ -39,6 +34,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.videoChatting.echat.presentation.theme.*
 import com.videoChatting.echat.utils.Constants
 import io.agora.media.RtcTokenBuilder2
 import io.agora.rtc2.*
@@ -173,8 +171,13 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PremiumBackgroundGradient)
+            .background(getThemeBackgroundGradient())
     ) {
+        val textColor = getThemeTextColor()
+        val subTextColor = getThemeSubTextColor()
+        val cardBackground = getThemeGlassBackground()
+        val cardBorder = getThemeGlassBorder()
+
         if (state is DiscoveryState.Searching) {
             Column(
                 modifier = Modifier
@@ -185,7 +188,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             ) {
                 Text(
                     text = "Finding Your Match",
-                    color = Color.White,
+                    color = textColor,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 28.sp,
                     textAlign = TextAlign.Center
@@ -193,7 +196,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Searching the global queue for the best candidate...",
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = subTextColor,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
@@ -216,8 +219,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = GlassBackground),
-                    border = BorderStroke(1.dp, GlassBorder),
+                    colors = CardDefaults.cardColors(containerColor = cardBackground),
+                    border = BorderStroke(1.dp, cardBorder),
                     shape = RoundedCornerShape(28.dp)
                 ) {
                     Column(
@@ -238,7 +241,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         
                         Text(
                             text = (state as DiscoveryState.Error).message,
-                            color = Color.White,
+                            color = textColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             textAlign = TextAlign.Center
@@ -246,7 +249,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         
                         Text(
                             text = "Please recharge your coins in the wallet section to continue matching.",
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = subTextColor,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
@@ -291,8 +294,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             modifier = Modifier
                                 .padding(16.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(GlassBackground)
-                                .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(12.dp))
+                                .background(cardBackground)
+                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .align(Alignment.BottomStart)
                         ) {
@@ -310,8 +313,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .statusBarsPadding()
                                 .padding(16.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(GlassBackground)
-                                .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(16.dp))
+                                .background(cardBackground)
+                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .align(Alignment.TopEnd)
                         ) {
@@ -351,8 +354,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                     }
                                 },
                                 modifier = Modifier
-                                    .background(GlassBackground, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, GlassBorder), CircleShape)
+                                    .background(cardBackground, shape = CircleShape)
+                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
                             ) {
                                 Icon(
                                     if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
@@ -369,8 +372,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                     }
                                 },
                                 modifier = Modifier
-                                    .background(GlassBackground, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, GlassBorder), CircleShape)
+                                    .background(cardBackground, shape = CircleShape)
+                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
                             ) {
                                 Icon(
                                     if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
@@ -402,7 +405,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
                 }
 
-                HorizontalDivider(color = GlassBorder, thickness = 1.dp)
+                HorizontalDivider(color = cardBorder, thickness = 1.dp)
 
                 // Bottom Half: Local Video
                 Box(
@@ -435,8 +438,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         modifier = Modifier
                             .padding(16.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(GlassBackground)
-                            .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(12.dp))
+                            .background(cardBackground)
+                            .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                             .align(Alignment.TopStart)
                     ) {
@@ -448,8 +451,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 24.dp)
-                            .background(GlassBackground, shape = RoundedCornerShape(32.dp))
-                            .border(BorderStroke(1.dp, GlassBorder), shape = RoundedCornerShape(32.dp))
+                            .background(cardBackground, shape = RoundedCornerShape(32.dp))
+                            .border(BorderStroke(1.dp, cardBorder), shape = RoundedCornerShape(32.dp))
                             .padding(horizontal = 24.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
@@ -461,7 +464,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             },
                             modifier = Modifier
                                 .background(if (isMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
-                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else GlassBorder), CircleShape)
+                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else cardBorder), CircleShape)
                         ) {
                             Icon(if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, contentDescription = "Mute", tint = Color.White)
                         }
@@ -475,7 +478,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             },
                             modifier = Modifier
                                 .background(if (isVideoMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
-                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else GlassBorder), CircleShape)
+                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else cardBorder), CircleShape)
                         ) {
                             Icon(if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, contentDescription = "Video", tint = Color.White)
                         }
@@ -487,7 +490,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             enabled = state is DiscoveryState.Matched,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ElectricIndigo,
-                                disabledContainerColor = GlassBackground
+                                disabledContainerColor = cardBackground
                             ),
                             shape = RoundedCornerShape(24.dp),
                             modifier = Modifier.height(48.dp)

@@ -66,14 +66,18 @@ fun PreferencesScreen(
         topBar = {
             TopAppBar(
                 modifier = Modifier.statusBarsPadding(),
-                title = { Text("Match Preferences", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White) },
+                title = { Text("Match Preferences", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = getThemeTextColor()) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = getThemeTextColor()
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CyberMidnight
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -82,7 +86,7 @@ fun PreferencesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(PremiumBackgroundGradient)
+                .background(getThemeBackgroundGradient())
         ) {
             Column(
                 modifier = Modifier
@@ -91,16 +95,21 @@ fun PreferencesScreen(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                val cardBackground = getThemeGlassBackground()
+                val cardBorder = getThemeGlassBorder()
+                val textColor = getThemeTextColor()
+                val subTextColor = getThemeSubTextColor()
+
                 Text(
                     text = "These soft preferences help customize who you match with. If no matching candidate is found, you will match with anyone available to reduce waiting time.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = subTextColor
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = GlassBackground),
-                    border = BorderStroke(1.dp, GlassBorder),
+                    colors = CardDefaults.cardColors(containerColor = cardBackground),
+                    border = BorderStroke(1.dp, cardBorder),
                     shape = RoundedCornerShape(24.dp)
                 ) {
                     Column(
@@ -108,7 +117,7 @@ fun PreferencesScreen(
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         // Preferred Gender
-                        Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = textColor)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -124,11 +133,11 @@ fun PreferencesScreen(
                                         .weight(1f)
                                         .height(52.dp)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(if (selected) ElectricIndigo else GlassBackground)
+                                        .background(if (selected) ElectricIndigo else cardBackground)
                                         .border(
                                             BorderStroke(
                                                 width = 1.dp,
-                                                color = if (selected) ElectricViolet else GlassBorder
+                                                color = if (selected) ElectricViolet else cardBorder
                                             ),
                                             shape = RoundedCornerShape(12.dp)
                                         )
@@ -137,7 +146,7 @@ fun PreferencesScreen(
                                 ) {
                                     Text(
                                         text = label,
-                                        color = Color.White,
+                                        color = if (selected) Color.White else textColor,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
                                     )
@@ -148,7 +157,7 @@ fun PreferencesScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Location Scope
-                        Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = textColor)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,11 +172,11 @@ fun PreferencesScreen(
                                         .weight(1f)
                                         .height(52.dp)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(if (selected) CyberCyan else GlassBackground)
+                                        .background(if (selected) CyberCyan else cardBackground)
                                         .border(
                                             BorderStroke(
                                                 width = 1.dp,
-                                                color = if (selected) CyberCyan.copy(alpha = 0.6f) else GlassBorder
+                                                color = if (selected) CyberCyan.copy(alpha = 0.6f) else cardBorder
                                             ),
                                             shape = RoundedCornerShape(12.dp)
                                         )
@@ -176,7 +185,7 @@ fun PreferencesScreen(
                                 ) {
                                     Text(
                                         text = label,
-                                        color = Color.White,
+                                        color = if (selected) Color.White else textColor,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
                                     )
@@ -191,7 +200,7 @@ fun PreferencesScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Max Distance", fontWeight = FontWeight.SemiBold, color = Color.White)
+                                Text("Max Distance", fontWeight = FontWeight.SemiBold, color = textColor)
                                 Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = CyberCyan)
                             }
                             Slider(
@@ -202,7 +211,7 @@ fun PreferencesScreen(
                                 colors = SliderDefaults.colors(
                                     thumbColor = CyberCyan,
                                     activeTrackColor = CyberCyan,
-                                    inactiveTrackColor = GlassBorder
+                                    inactiveTrackColor = cardBorder
                                 )
                             )
                         }

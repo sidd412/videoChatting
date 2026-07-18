@@ -33,6 +33,7 @@ fun SettingsScreen(appNavController: NavController? = null) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {

@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +40,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.location.LocationServices
 import com.videoChatting.echat.data.local.SessionManager
+import com.videoChatting.echat.presentation.theme.*
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,12 +114,12 @@ fun OnboardingScreen(
 
     Scaffold(
         topBar = {
-            Column {
+            Column(modifier = Modifier.background(CyberMidnight)) {
                 LinearProgressIndicator(
                     progress = { (currentStep) / 4f },
                     modifier = Modifier.fillMaxWidth().height(6.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    color = ElectricIndigo,
+                    trackColor = GlassBackground
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -126,7 +128,7 @@ fun OnboardingScreen(
                 ) {
                     if (currentStep > 0) {
                         IconButton(onClick = { currentStep-- }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                         }
                     } else {
                         Spacer(modifier = Modifier.size(48.dp))
@@ -136,7 +138,7 @@ fun OnboardingScreen(
                         text = "Step ${currentStep + 1} of 5",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                        color = Color.White
                     )
 
                     // Skip preferences option (only in preferences step)
@@ -156,7 +158,7 @@ fun OnboardingScreen(
                                 kmRadius = 50
                             )
                         }) {
-                            Text("Skip", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                            Text("Skip", fontWeight = FontWeight.Bold, color = CyberCyan)
                         }
                     } else {
                         Spacer(modifier = Modifier.size(48.dp))
@@ -169,14 +171,7 @@ fun OnboardingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                        )
-                    )
-                )
+                .background(PremiumBackgroundGradient)
         ) {
             AnimatedContent(
                 targetState = currentStep,
@@ -209,7 +204,8 @@ fun OnboardingScreen(
                                 modifier = Modifier
                                     .size(120.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                    .background(GlassBackground)
+                                    .border(BorderStroke(1.dp, GlassBorder), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("👋", fontSize = 56.sp)
@@ -220,23 +216,24 @@ fun OnboardingScreen(
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.primary
+                                color = Color.White
                             )
                             Text(
                                 text = "Let's personalize your card so you can match with interesting people worldwide in seconds.",
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                                color = Color.White.copy(alpha = 0.7f)
                             )
                             Spacer(modifier = Modifier.height(32.dp))
                             Button(
                                 onClick = { currentStep = 1 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo)
                             ) {
-                                Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White)
                             }
                         }
                         1 -> {
@@ -245,30 +242,35 @@ fun OnboardingScreen(
                                 text = "What should we call you?",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
                             Text(
                                 text = "Choose a display name that others will see during chat.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                color = Color.White.copy(alpha = 0.6f)
                             )
                             
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                                border = BorderStroke(1.dp, GlassBorder),
                                 shape = RoundedCornerShape(24.dp)
                             ) {
                                 Column(modifier = Modifier.padding(24.dp)) {
                                     OutlinedTextField(
                                         value = name,
                                         onValueChange = { if (it.length <= 20) name = it },
-                                        label = { Text("Display Name") },
+                                        label = { Text("Display Name", color = Color.White.copy(alpha = 0.6f)) },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
+                                        textStyle = LocalTextStyle.current.copy(color = Color.White),
                                         colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                            focusedBorderColor = ElectricIndigo,
+                                            unfocusedBorderColor = GlassBorder,
+                                            focusedLabelColor = ElectricIndigo,
+                                            unfocusedLabelColor = Color.White.copy(alpha = 0.4f)
                                         )
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -276,7 +278,7 @@ fun OnboardingScreen(
                                         text = "${name.length}/20 characters",
                                         style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier.align(Alignment.End),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        color = Color.White.copy(alpha = 0.5f)
                                     )
                                 }
                             }
@@ -286,9 +288,10 @@ fun OnboardingScreen(
                                 onClick = { currentStep = 2 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                                 shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
                                 enabled = name.isNotBlank()
                             ) {
-                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
                         2 -> {
@@ -297,19 +300,21 @@ fun OnboardingScreen(
                                 text = "Tell us about yourself",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
                             
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                                border = BorderStroke(1.dp, GlassBorder),
                                 shape = RoundedCornerShape(24.dp)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(24.dp),
                                     verticalArrangement = Arrangement.spacedBy(20.dp)
                                 ) {
-                                    Text("I identify as", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Text("I identify as", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -325,10 +330,12 @@ fun OnboardingScreen(
                                                     .weight(1f)
                                                     .height(52.dp)
                                                     .clip(RoundedCornerShape(12.dp))
-                                                    .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
+                                                    .background(if (selected) ElectricIndigo else GlassBackground)
                                                     .border(
-                                                        width = 1.dp,
-                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        BorderStroke(
+                                                            width = 1.dp,
+                                                            color = if (selected) ElectricViolet else GlassBorder
+                                                        ),
                                                         shape = RoundedCornerShape(12.dp)
                                                     )
                                                     .clickable { gender = g },
@@ -336,7 +343,7 @@ fun OnboardingScreen(
                                             ) {
                                                 Text(
                                                     text = label,
-                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    color = Color.White,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 14.sp
                                                 )
@@ -350,12 +357,12 @@ fun OnboardingScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("My age is", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                        Text("My age is", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
                                         Text(
                                             text = "${age.toInt()} Years",
                                             fontWeight = FontWeight.Bold,
                                             style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = CyberCyan
                                         )
                                     }
                                     Slider(
@@ -364,8 +371,9 @@ fun OnboardingScreen(
                                         valueRange = 18f..99f,
                                         steps = 81,
                                         colors = SliderDefaults.colors(
-                                            thumbColor = MaterialTheme.colorScheme.primary,
-                                            activeTrackColor = MaterialTheme.colorScheme.primary
+                                            thumbColor = CyberCyan,
+                                            activeTrackColor = CyberCyan,
+                                            inactiveTrackColor = GlassBorder
                                         )
                                     )
                                 }
@@ -375,9 +383,10 @@ fun OnboardingScreen(
                             Button(
                                 onClick = { currentStep = 3 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo)
                             ) {
-                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
                         3 -> {
@@ -386,12 +395,14 @@ fun OnboardingScreen(
                                 text = "Where are you located?",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
                             
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                                border = BorderStroke(1.dp, GlassBorder),
                                 shape = RoundedCornerShape(24.dp)
                             ) {
                                 Column(
@@ -429,14 +440,14 @@ fun OnboardingScreen(
                                                 .fillMaxSize()
                                                 .scale(pulseScale)
                                                 .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = pulseAlpha))
+                                                .background(CyberCyan.copy(alpha = pulseAlpha))
                                         )
                                         
                                         Box(
                                             modifier = Modifier
                                                 .size(70.dp)
                                                 .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.secondary),
+                                                .background(CyberCyan),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp))
@@ -447,7 +458,8 @@ fun OnboardingScreen(
                                         text = locationStatus,
                                         style = MaterialTheme.typography.bodyLarge,
                                         textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color.White
                                     )
 
                                     Button(
@@ -483,9 +495,9 @@ fun OnboardingScreen(
                                             }
                                         },
                                         modifier = Modifier.fillMaxWidth().height(48.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                        colors = ButtonDefaults.buttonColors(containerColor = CyberCyan)
                                     ) {
-                                        Text("Find My GPS Location", fontWeight = FontWeight.Bold)
+                                        Text("Find My GPS Location", fontWeight = FontWeight.Bold, color = Color.White)
                                     }
                                 }
                             }
@@ -494,9 +506,10 @@ fun OnboardingScreen(
                             Button(
                                 onClick = { currentStep = 4 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo)
                             ) {
-                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text("Continue", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
                         4 -> {
@@ -505,19 +518,21 @@ fun OnboardingScreen(
                                 text = "Who are you looking for?",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
                             
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                                colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                                border = BorderStroke(1.dp, GlassBorder),
                                 shape = RoundedCornerShape(24.dp)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(24.dp),
                                     verticalArrangement = Arrangement.spacedBy(20.dp)
                                 ) {
-                                    Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -533,10 +548,12 @@ fun OnboardingScreen(
                                                     .weight(1f)
                                                     .height(52.dp)
                                                     .clip(RoundedCornerShape(12.dp))
-                                                    .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
+                                                    .background(if (selected) ElectricIndigo else GlassBackground)
                                                     .border(
-                                                        width = 1.dp,
-                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        BorderStroke(
+                                                            width = 1.dp,
+                                                            color = if (selected) ElectricViolet else GlassBorder
+                                                        ),
                                                         shape = RoundedCornerShape(12.dp)
                                                     )
                                                     .clickable { prefGender = pref },
@@ -544,7 +561,7 @@ fun OnboardingScreen(
                                             ) {
                                                 Text(
                                                     text = label,
-                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    color = Color.White,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 14.sp
                                                 )
@@ -553,7 +570,7 @@ fun OnboardingScreen(
                                     }
 
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                                    Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -568,10 +585,12 @@ fun OnboardingScreen(
                                                     .weight(1f)
                                                     .height(52.dp)
                                                     .clip(RoundedCornerShape(12.dp))
-                                                    .background(if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface)
+                                                    .background(if (selected) CyberCyan else GlassBackground)
                                                     .border(
-                                                        width = 1.dp,
-                                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                                        BorderStroke(
+                                                            width = 1.dp,
+                                                            color = if (selected) CyberCyan.copy(alpha = 0.6f) else GlassBorder
+                                                        ),
                                                         shape = RoundedCornerShape(12.dp)
                                                     )
                                                     .clickable { filterType = type },
@@ -579,7 +598,7 @@ fun OnboardingScreen(
                                             ) {
                                                 Text(
                                                     text = label,
-                                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                    color = Color.White,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 14.sp
                                                 )
@@ -594,14 +613,19 @@ fun OnboardingScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text("Max Distance", fontWeight = FontWeight.SemiBold)
-                                            Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                                            Text("Max Distance", fontWeight = FontWeight.SemiBold, color = Color.White)
+                                            Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = CyberCyan)
                                         }
                                         Slider(
                                             value = kmRadius,
                                             onValueChange = { kmRadius = it },
                                             valueRange = 10f..500f,
-                                            steps = 49
+                                            steps = 49,
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = CyberCyan,
+                                                activeTrackColor = CyberCyan,
+                                                inactiveTrackColor = GlassBorder
+                                            )
                                         )
                                     }
                                 }
@@ -626,12 +650,13 @@ fun OnboardingScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                                 shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
                                 enabled = state !is OnboardingState.Loading
                             ) {
                                 if (state is OnboardingState.Loading) {
                                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                                 } else {
-                                    Text("Complete Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text("Complete Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 }
                             }
                         }

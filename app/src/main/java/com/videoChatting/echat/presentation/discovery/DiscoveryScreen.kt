@@ -7,9 +7,20 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import com.videoChatting.echat.presentation.theme.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
@@ -158,255 +169,480 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(PremiumBackgroundGradient)
     ) {
-        // Top Half: Remote Video
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .background(Color.DarkGray)
-        ) {
-            // Branding
-            Text(
-                "eChat",
-                color = Color.White.copy(alpha = 0.5f),
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(16.dp).align(Alignment.TopStart)
-            )
-
-            if (state is DiscoveryState.Searching) {
-                Text(
-                    "Searching for someone...",
-                    color = Color.White,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp), color = MaterialTheme.colorScheme.primary)
-            } else if (state is DiscoveryState.Error) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(Icons.Default.Star, contentDescription = "Coins", tint = Color.Yellow, modifier = Modifier.size(48.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        (state as DiscoveryState.Error).message,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Go to Wallet to recharge.",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-            } else if (remoteSurfaceView != null) {
-                AndroidView(
-                    factory = { 
-                        FrameLayout(context).apply { 
-                            val view = remoteSurfaceView
-                            if (view != null) {
-                                (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
-                            }
-                        } 
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .align(Alignment.BottomStart)
-                ) {
-                    Text(
-                        text = if (state is DiscoveryState.Matched) (state as DiscoveryState.Matched).match.partner.name else "Stranger",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                // Show Coin Balance
-                val currentCoins by viewModel.currentCoins.collectAsState()
-                Box(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .align(Alignment.TopEnd)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Coins",
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "$currentCoins",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-                
-                // Shorts-style vertical action buttons
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 32.dp, end = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    var isLiked by remember { mutableStateOf(false) }
-                    var isAdded by remember { mutableStateOf(false) }
-                    
-                    IconButton(
-                        onClick = { 
-                            isLiked = !isLiked
-                            if (state is DiscoveryState.Matched) {
-                                viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
-                            }
-                        },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), shape = RoundedCornerShape(50))
-                    ) {
-                        Icon(
-                            if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
-                            contentDescription = "Like", 
-                            tint = if (isLiked) Color.Red else Color.White
-                        )
-                    }
-                    
-                    IconButton(
-                        onClick = { 
-                            isAdded = !isAdded
-                            if (state is DiscoveryState.Matched) {
-                                viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
-                            }
-                        },
-                        modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), shape = RoundedCornerShape(50))
-                    ) {
-                        Icon(
-                            if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
-                            contentDescription = "Add", 
-                            tint = Color.White
-                        )
-                    }
-                }
-            } else if (state is DiscoveryState.Matched) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center)) {
-                    Text(
-                        "Connecting to Stranger...",
-                        color = Color.White
-                    )
-                    if (agoraStatus.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            agoraStatus,
-                            color = Color.Yellow,
-                            fontSize = 12.sp
-                        )
-                    }
-                }
-            }
-        }
-
-        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
-
-        // Bottom Half: Local Video + Chat
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .background(Color.Black)
-        ) {
-            if (localSurfaceView != null && !isVideoMuted) {
-                AndroidView(
-                    factory = { 
-                        FrameLayout(context).apply { 
-                            val view = localSurfaceView
-                            if (view != null) {
-                                (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
-                            }
-                        } 
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                    Text(if (isVideoMuted) "Camera Off" else "Starting Camera...", color = Color.White)
-                }
-            }
-
-            // Controls Overlay
-            Box(
+        if (state is DiscoveryState.Searching) {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                Text(
+                    text = "Finding Your Match",
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 28.sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Searching the global queue for the best candidate...",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                RadarScanner()
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                CircularProgressIndicator(color = CyberCyan, strokeWidth = 3.dp)
+            }
+        } else if (state is DiscoveryState.Error) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                    border = BorderStroke(1.dp, GlassBorder),
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(NeonRose.copy(alpha = 0.2f))
+                                .border(BorderStroke(1.5.dp, NeonRose), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Star, contentDescription = "Error Icon", tint = Color(0xFFFFD700), modifier = Modifier.size(36.dp))
+                        }
+                        
+                        Text(
+                            text = (state as DiscoveryState.Error).message,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        
+                        Text(
+                            text = "Please recharge your coins in the wallet section to continue matching.",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        
+                        Button(
+                            onClick = { viewModel.startDiscovery() },
+                            colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Retry Matchmaking", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+            }
+        } else {
+            // Active split screen for video chat
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Half: Remote Video
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .align(Alignment.TopStart)
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(Color.Black)
                 ) {
-                    Text("You", color = Color.White, fontWeight = FontWeight.Bold)
+                    if (remoteSurfaceView != null) {
+                        AndroidView(
+                            factory = { 
+                                FrameLayout(context).apply { 
+                                    val view = remoteSurfaceView
+                                    if (view != null) {
+                                        (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                        addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                    }
+                                } 
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        
+                        // Glassmorphic name label
+                        Box(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(GlassBackground)
+                                .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .align(Alignment.BottomStart)
+                        ) {
+                            Text(
+                                text = if (state is DiscoveryState.Matched) (state as DiscoveryState.Matched).match.partner.name else "Stranger",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        // Show Coin Balance
+                        val currentCoins by viewModel.currentCoins.collectAsState()
+                        Box(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(GlassBackground)
+                                .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(16.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Coins",
+                                    tint = Color(0xFFFFD700),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "$currentCoins",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                        
+                        // Shorts-style vertical action buttons
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(bottom = 32.dp, end = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            var isLiked by remember { mutableStateOf(false) }
+                            var isAdded by remember { mutableStateOf(false) }
+                            
+                            IconButton(
+                                onClick = { 
+                                    isLiked = !isLiked
+                                    if (state is DiscoveryState.Matched) {
+                                        viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .background(GlassBackground, shape = CircleShape)
+                                    .border(BorderStroke(1.dp, GlassBorder), CircleShape)
+                            ) {
+                                Icon(
+                                    if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
+                                    contentDescription = "Like", 
+                                    tint = if (isLiked) NeonRose else Color.White
+                                )
+                            }
+                            
+                            IconButton(
+                                onClick = { 
+                                    isAdded = !isAdded
+                                    if (state is DiscoveryState.Matched) {
+                                        viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .background(GlassBackground, shape = CircleShape)
+                                    .border(BorderStroke(1.dp, GlassBorder), CircleShape)
+                            ) {
+                                Icon(
+                                    if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
+                                    contentDescription = "Add", 
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.align(Alignment.Center),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                "Connecting to Stranger...",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            CircularProgressIndicator(color = ElectricIndigo)
+                            if (agoraStatus.isNotEmpty()) {
+                                Text(
+                                    agoraStatus,
+                                    color = CyberCyan,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
                 }
 
-                // Bottom Center Controls
-                Row(
+                HorizontalDivider(color = GlassBorder, thickness = 1.dp)
+
+                // Bottom Half: Local Video
+                Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                        .weight(1f)
                         .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(Color.Black)
                 ) {
-                    IconButton(onClick = { 
-                        isMuted = !isMuted
-                        rtcEngine?.muteLocalAudioStream(isMuted)
-                    }, modifier = Modifier.background(Color.Black.copy(alpha=0.5f), shape = RoundedCornerShape(50))) {
-                        Icon(if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, contentDescription = "Mute", tint = Color.White)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    IconButton(onClick = { 
-                        isVideoMuted = !isVideoMuted
-                        rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                    }, modifier = Modifier.background(Color.Black.copy(alpha=0.5f), shape = RoundedCornerShape(50))) {
-                        Icon(if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, contentDescription = "Video", tint = Color.White)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = { viewModel.nextPerson() },
-                        enabled = state is DiscoveryState.Matched,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                        ),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.height(48.dp)
-                    ) {
-                        if (state is DiscoveryState.Matched) {
-                            Icon(Icons.Default.SkipNext, contentDescription = "Next")
-                            Spacer(modifier = Modifier.width(8.dp))
+                    if (localSurfaceView != null && !isVideoMuted) {
+                        AndroidView(
+                            factory = { 
+                                FrameLayout(context).apply { 
+                                    val view = localSurfaceView
+                                    if (view != null) {
+                                        (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                        addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                    }
+                                } 
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize().background(CyberMidnight), contentAlignment = Alignment.Center) {
+                            Text(if (isVideoMuted) "Camera Off" else "Starting Camera...", color = Color.White.copy(alpha = 0.6f))
                         }
-                        Text(if (state is DiscoveryState.Matched) "Next" else "Searching...", fontWeight = FontWeight.Bold)
+                    }
+
+                    // Local Video Overlay Name Tag
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(GlassBackground)
+                            .border(BorderStroke(1.dp, GlassBorder), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .align(Alignment.TopStart)
+                    ) {
+                        Text("You", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    // Bottom Floating Glass Controls Capsule
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 24.dp)
+                            .background(GlassBackground, shape = RoundedCornerShape(32.dp))
+                            .border(BorderStroke(1.dp, GlassBorder), shape = RoundedCornerShape(32.dp))
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { 
+                                isMuted = !isMuted
+                                rtcEngine?.muteLocalAudioStream(isMuted)
+                            },
+                            modifier = Modifier
+                                .background(if (isMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else GlassBorder), CircleShape)
+                        ) {
+                            Icon(if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, contentDescription = "Mute", tint = Color.White)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(20.dp))
+                        
+                        IconButton(
+                            onClick = { 
+                                isVideoMuted = !isVideoMuted
+                                rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                            },
+                            modifier = Modifier
+                                .background(if (isVideoMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else GlassBorder), CircleShape)
+                        ) {
+                            Icon(if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, contentDescription = "Video", tint = Color.White)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(20.dp))
+                        
+                        Button(
+                            onClick = { viewModel.nextPerson() },
+                            enabled = state is DiscoveryState.Matched,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ElectricIndigo,
+                                disabledContainerColor = GlassBackground
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.height(48.dp)
+                        ) {
+                            if (state is DiscoveryState.Matched) {
+                                Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            Text(if (state is DiscoveryState.Matched) "Next" else "Searching...", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
                 }
             }
         }
     }
+}
+
+// Spectacular glowing neon Radar Scanner composable
+@Composable
+fun RadarScanner(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "radar")
+    
+    // Rotating sweep hand
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+    
+    // Expanding rings
+    val ring1Scale by transition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = EaseOutQuad),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring1"
+    )
+    val ring1Alpha by transition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = EaseOutQuad),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring1Alpha"
+    )
+
+    val ring2Scale by transition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, delayMillis = 1100, easing = EaseOutQuad),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring2"
+    )
+    val ring2Alpha by transition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, delayMillis = 1100, easing = EaseOutQuad),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring2Alpha"
+    )
+
+    Box(
+        modifier = modifier.size(240.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Glowing Background Aura
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(CyberCyan.copy(alpha = 0.15f), Color.Transparent)
+                    )
+                )
+        )
+
+        // Ring 1
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(ring1Scale)
+                .border(BorderStroke(1.5.dp, CyberCyan.copy(alpha = ring1Alpha)), CircleShape)
+        )
+
+        // Ring 2
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(ring2Scale)
+                .border(BorderStroke(1.5.dp, NeonRose.copy(alpha = ring2Alpha)), CircleShape)
+        )
+
+        // Sweep rotation overlay
+        androidx.compose.foundation.Canvas(modifier = Modifier.size(220.dp)) {
+            val radius = size.minDimension / 2
+            val center = size / 2f
+            
+            // Draw outer radar circles
+            drawCircle(
+                color = Color.White.copy(alpha = 0.08f),
+                radius = radius,
+                style = Stroke(width = 1.dp.toPx())
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.04f),
+                radius = radius * 0.65f,
+                style = Stroke(width = 1.dp.toPx())
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.02f),
+                radius = radius * 0.35f,
+                style = Stroke(width = 1.dp.toPx())
+            )
+
+            // Sweep Line
+            rotate(rotation, pivot = center) {
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, CyberCyan.copy(alpha = 0.6f))
+                    ),
+                    start = center,
+                    end = center.copy(x = center.x + radius),
+                    strokeWidth = 2.dp.toPx()
+                )
+            }
+        }
+
+        // Center Pulsing Core
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(ElectricIndigo, NeonRose)
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+}
 }

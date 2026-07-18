@@ -1,6 +1,7 @@
 package com.videoChatting.echat.presentation.settings
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,157 +65,173 @@ fun PreferencesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Match Preferences", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+                title = { Text("Match Preferences", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = CyberMidnight
                 )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .background(PremiumBackgroundGradient)
         ) {
-            Text(
-                text = "These soft preferences help customize who you match with. If no matching candidate is found, you will match with anyone available to reduce waiting time.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
-                shape = RoundedCornerShape(24.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                Text(
+                    text = "These soft preferences help customize who you match with. If no matching candidate is found, you will match with anyone available to reduce waiting time.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = GlassBackground),
+                    border = BorderStroke(1.dp, GlassBorder),
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    // Preferred Gender
-                    Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        listOf(
-                            "Male" to "👨 Male",
-                            "Female" to "👩 Female",
-                            "All" to "🌍 All"
-                        ).forEach { (pref, label) ->
-                            val selected = prefGender == pref
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(52.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
-                                    .border(
-                                        width = 1.dp,
-                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable { prefGender = pref },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Location Scope
-                    Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        listOf(
-                            "country" to "Same Country",
-                            "km" to "Distance Scope"
-                        ).forEach { (type, label) ->
-                            val selected = filterType == type
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(52.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface)
-                                    .border(
-                                        width = 1.dp,
-                                        color = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable { filterType = type },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    }
-
-                    if (filterType == "km") {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        // Preferred Gender
+                        Text("Prefer matching with", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("Max Distance", fontWeight = FontWeight.SemiBold)
-                            Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                            listOf(
+                                "Male" to "👨 Male",
+                                "Female" to "👩 Female",
+                                "All" to "🌍 All"
+                            ).forEach { (pref, label) ->
+                                val selected = prefGender == pref
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(52.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (selected) ElectricIndigo else GlassBackground)
+                                        .border(
+                                            BorderStroke(
+                                                width = 1.dp,
+                                                color = if (selected) ElectricViolet else GlassBorder
+                                            ),
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable { prefGender = pref },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
                         }
-                        Slider(
-                            value = kmRadius,
-                            onValueChange = { kmRadius = it },
-                            valueRange = 10f..500f,
-                            steps = 49
-                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Location Scope
+                        Text("Location Range", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            listOf(
+                                "country" to "Same Country",
+                                "km" to "Distance Scope"
+                            ).forEach { (type, label) ->
+                                val selected = filterType == type
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(52.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (selected) CyberCyan else GlassBackground)
+                                        .border(
+                                            BorderStroke(
+                                                width = 1.dp,
+                                                color = if (selected) CyberCyan.copy(alpha = 0.6f) else GlassBorder
+                                            ),
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable { filterType = type },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        if (filterType == "km") {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Max Distance", fontWeight = FontWeight.SemiBold, color = Color.White)
+                                Text("${kmRadius.toInt()} km", fontWeight = FontWeight.Bold, color = CyberCyan)
+                            }
+                            Slider(
+                                value = kmRadius,
+                                onValueChange = { kmRadius = it },
+                                valueRange = 10f..500f,
+                                steps = 49,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = CyberCyan,
+                                    activeTrackColor = CyberCyan,
+                                    inactiveTrackColor = GlassBorder
+                                )
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    viewModel.savePreferences(
-                        prefGender = prefGender,
-                        prefMinAge = 18,
-                        prefMaxAge = 99,
-                        filterType = filterType,
-                        kmRadius = kmRadius.toInt()
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                enabled = state !is PreferencesState.Loading
-            ) {
-                if (state is PreferencesState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                } else {
-                    Text("Save Preferences", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = {
+                        viewModel.savePreferences(
+                            prefGender = prefGender,
+                            prefMinAge = 18,
+                            prefMaxAge = 99,
+                            filterType = filterType,
+                            kmRadius = kmRadius.toInt()
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
+                    enabled = state !is PreferencesState.Loading
+                ) {
+                    if (state is PreferencesState.Loading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Save Preferences", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
             }
         }

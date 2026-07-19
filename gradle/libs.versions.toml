@@ -1,6 +1,8 @@
 [versions]
 agp = "9.2.1"
 coreKtx = "1.12.0"
+firebaseMessaging = "25.1.1"
+hiltNavigationCompose = "1.4.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -11,6 +13,7 @@ composeBom = "2026.02.01"
 hilt = "2.59.2"
 firebaseBom = "32.7.2"
 agora = "4.3.0"
+lifecycleViewmodelCompose = "2.11.0"
 navCompose = "2.7.7"
 googleServices = "4.4.1"
 kotlinMetadata = "2.1.0"
@@ -23,7 +26,11 @@ playServicesAuth = "21.1.1"
 playServicesLocation = "21.2.0"
 
 [libraries]
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-hilt-navigation-compose-v140 = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

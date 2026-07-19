@@ -12,11 +12,12 @@ plugins {
 
 android {
     namespace = "com.videoChatting.echat"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.videoChatting.echat"
         minSdk = 24
+        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -50,12 +51,13 @@ android {
             isShrinkResources = true
             
             // Use real release config if keystore details are present in local.properties, otherwise fallback to debug
-            val path = localProperties.getProperty("keystore.path")
-            signingConfig = if (path != null) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+//            val path = localProperties.getProperty("keystore.path")
+            signingConfig = signingConfigs.getByName("release")
+//                if (path != null) {
+//                signingConfigs.getByName("release")
+//            } else {
+//                signingConfigs.getByName("debug")
+//            }
             
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -96,7 +98,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation("androidx.compose.ui:ui-text-google-fonts")
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -116,7 +118,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation("com.google.firebase:firebase-messaging:23.4.1")
+    implementation(libs.firebase.messaging)
 
     // Agora
     implementation(libs.agora.rtc)
@@ -131,6 +133,7 @@ dependencies {
     implementation(libs.socket.io.client)
 
     // Google Play Services
+    //noinspection LoginCredentials
     implementation(libs.play.services.auth)
     implementation(libs.play.services.location)
 
@@ -143,7 +146,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 dependencies {
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.navigation.compose.v140)
 }
 

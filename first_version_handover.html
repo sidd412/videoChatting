@@ -16,6 +16,9 @@
             --text-muted: #64748B;
             --bg-card: #FFFFFF;
             --border-color: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
         }
 
         body {
@@ -76,6 +79,14 @@
             padding-left: 12px;
             margin-top: 40px;
             margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 17px;
+            color: var(--primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
             font-weight: 700;
         }
 
@@ -145,6 +156,28 @@
             color: #312E81;
         }
 
+        /* Warning Callout Box */
+        .warning-box {
+            background-color: #FFFBEB;
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .warning-box h4 {
+            margin: 0 0 8px 0;
+            color: #B45309;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .warning-box p {
+            margin: 0;
+            font-size: 14.5px;
+            color: #78350F;
+        }
+
         /* Structured Roadmap Table */
         table {
             width: 100%;
@@ -186,13 +219,13 @@
                 padding: 0;
                 max-width: 100%;
             }
-            .component-card {
+            .component-card, .warning-box, .alert-box {
                 page-break-inside: avoid;
             }
             tr {
                 page-break-inside: avoid;
             }
-            h2 {
+            h2, h3 {
                 page-break-after: avoid;
             }
         }
@@ -203,69 +236,162 @@
         <!-- Document Header -->
         <div class="header">
             <h1>Talksy — Project Status Report & Release Roadmap</h1>
-            <div class="subtitle">Dynamic Video Chatting Platform Development Progress</div>
+            <div class="subtitle">Dynamic Video Chatting Platform Development Status</div>
             <div class="meta-grid">
-                <div><strong>Project Scope:</strong> Interactive & Scalable Real-time Platform</div>
-                <div><strong>Last Updated:</strong> July 19, 2026</div>
-                <div><strong>Current Build:</strong> v1.0.0-Beta (Stable Release Variant)</div>
-                <div><strong>Project Deadline:</strong> Late October</div>
+                <div><strong>Project Owner:</strong> Sandeep Singh</div>
+                <div><strong>Lead Developer:</strong> Siddhartha Verma</div>
+                <div><strong>Report Date:</strong> July 19, 2026</div>
+                <div><strong>Current Version:</strong> v1.0.0-Beta (Stable Build)</div>
             </div>
         </div>
 
-        <!-- Executive Summary -->
+        <!-- Current Development Status -->
         <div class="alert-box">
-            <h4>📢 Current Development Status</h4>
-            <p>This report documents the current status and feature architecture of **Talksy**—our premium random video chatting application. The core engine is built, tested, and running smoothly. Below is the breakdown of what has been achieved so far and our release roadmap from Version 1 (V1) through Version 4 (V4) as we target the final launch.</p>
+            <h4>📢 Project Overview & Ownership</h4>
+            <p>This document details the current build status, technology integration, business metrics, and upcoming version targets for <strong>Talksy</strong>. The core system architecture—including matching logic, live video channels, global chat rooms, coin wallet billing, and payment processing—is fully implemented. This report outlines what is functional today and the releases scheduled between now and late October.</p>
         </div>
 
+        <!-- UI and Target Audience Section -->
+        <h2>🎨 1. Look, Feel & Target Audience</h2>
+        <p>Talksy has been designed from the ground up as a premium, highly engaging platform catering to modern mobile users.</p>
+        <ul>
+            <li><strong>The Visual Style:</strong> The app utilizes a premium <strong>"Liquid Glass" (glassmorphism)</strong> design theme. Layouts are constructed with semi-transparent frosted panels, vibrant neon gradient buttons, and smooth micro-animations. With high-contrast typography in <strong>Nunito Sans</strong> and custom system navigation bar blending, the UI feels native, premium, and unified in both dark and light modes.</li>
+            <li><strong>Target Audience:</strong> The primary target market consists of **Gen-Z and Millennials (18-35 age bracket)**. These users look for instant, zero-latency social connections, interactive matching filters, and a secure environment to make calls worldwide.</li>
+        </ul>
+
         <!-- Component Architecture -->
-        <h2>🌐 1. App Components & Architecture (Simple Breakdown)</h2>
-        <p>Talksy consists of three main components that communicate securely in the cloud to provide a smooth user experience:</p>
+        <h2>🌐 2. App Components & Tech Stack (Simple Breakdown)</h2>
+        <p>Talksy's architecture consists of three main components that communicate securely in the cloud to provide a smooth user experience:</p>
         
         <div class="component-grid">
             <div class="component-card">
-                <h3>📱 1.1 The Front-End (Android Application)</h3>
-                <p>This is the actual app that users install on their phones. It is built using <strong>Kotlin & Jetpack Compose</strong>, Google's latest toolkit. It features a modern, fluid visual theme with glassmorphism layouts, full dark/light mode alignment, and smooth animations.</p>
+                <h3>📱 2.1 The Front-End (Android Application)</h3>
+                <p>Built using Google's modern <strong>Kotlin & Jetpack Compose</strong> framework. It handles all live interfaces, video channels, client chat UI, and payment callbacks. This layout uses very low battery and ensures fluid transitions.</p>
             </div>
             
             <div class="component-card">
-                <h3>🖥️ 1.2 The Engine (Backend Server)</h3>
-                <p>This is the central processor hosted on <strong>Render Cloud Services</strong>. It contains all the matchmaking logic, connects users together, coordinates chat logs, and manages database transactions securely.</p>
+                <h3>🖥️ 2.2 The Engine (Backend Server)</h3>
+                <p>The central processor built with <strong>Node.js & Socket.io</strong> and hosted on <strong>Render</strong>. It processes user credentials, manages matching filters, tracks wallet status in real-time, and operates the active call signaling.</p>
             </div>
             
             <div class="component-card">
-                <h3>💾 1.3 Caching & Database (Redis & MongoDB)</h3>
-                <p>We use <strong>MongoDB</strong> to permanently save profiles, chat messages, and settings. In addition, we integrated <strong>Redis</strong> (an in-memory caching system). Redis works at lightning-fast speeds to find and pair matched users in milliseconds without any lag.</p>
+                <h3>💾 2.3 Caching & Database (Redis & MongoDB)</h3>
+                <p>We use <strong>MongoDB</strong> to permanently save user profile configurations, blocked lists, and message history. We integrated <strong>Redis</strong> (in-memory database) which acts as the matchmaker's quick-access memory, finding and pairing active users globally in milliseconds.</p>
             </div>
         </div>
 
         <!-- Implemented Features -->
-        <h2>✅ 2. What is Completed & Working (V1 Foundation)</h2>
+        <h2>✅ 3. Completed & Working Features (V1 Base)</h2>
         <ul>
-            <li><strong>Instant Live Video Calling:</strong> Integrated with <strong>Agora RTC</strong> to provide crystal-clear, HD video and audio calling with minimal delay, even on weaker network connections.</li>
-            <li><strong>Real-Time Chatting:</strong> Instantly exchange text messages with read/delivered checkmarks and online status indicators. All logs are securely saved for future access.</li>
-            <li><strong>Intelligent Match Preferences:</strong> Allows users to set criteria such as age limits, gender filters, and geographical boundaries to customize their matching pool.</li>
-            <li><strong>Coin-Based Billing:</strong> A complete wallet system that calculates call duration. It checks balance before matching and automatically deducts coins every minute, disconnecting cleanly if the balance reaches zero.</li>
-            <li><strong>Secure Payment Checkout:</strong> Integrated with <strong>Juspay Gateway</strong>. It launches a secure web payment form where users can purchase coin packs using UPI, credit cards, or net banking. Balance is updated automatically after payment completes.</li>
+            <li><strong>Instant Live Video Calling:</strong> Powered by **Agora RTC**, providing crystal-clear HD video and audio channels that adjust bandwidth consumption dynamically based on network conditions to prevent call drops.</li>
+            <li><strong>Real-Time Chatting:</strong> Direct text messaging powered by WebSockets, including online status indicators, read receipts, and permanent history storage.</li>
+            <li><strong>Intelligent Match Preferences:</strong> Real-time filtering by age limits, gender preferences, and regional boundaries.</li>
+            <li><strong>Coin-Based Calling:</strong> Call duration checks and wallet management. The backend checks coin balance before pairing and automatically deducts coins every minute of the call, cleanly disconnecting if the balance runs out.</li>
+            <li><strong>Secure Payment Checkout:</strong> Payment integration via **Juspay Gateway** with secure web redirect checkout, allowing UPI, debit cards, and net banking transactions to instantly credit the user's coin balance.</li>
         </ul>
 
-        <!-- Next Milestones Roadmap -->
-        <h2>📅 3. Release Versions & Roadmap</h2>
-        <p>The remaining features and optimizations have been structured into distinct version updates leading to the final launch:</p>
+        <!-- Financial Projections & Economics -->
+        <h2>📊 4. Economics & Unit Cost Analysis</h2>
+        <p>To ensure high profitability, we analyzed call costs versus pricing packages. Real-time video calling has very low overhead, leaving high margins on coin purchases.</p>
+        
+        <h3>🪙 4.1 Unit Cost per Minute of Calling</h3>
+        <ul>
+            <li><strong>Agora RTC Cost:</strong> ~$0.0039 per minute (approx. <strong>₹0.32/min</strong> for both caller and receiver combined).</li>
+            <li><strong>Server & Bandwidth:</strong> Approx. <strong>₹0.08/min</strong> for data transfer, socket signaling, and database reads.</li>
+            <li><strong>Total Running Cost:</strong> <strong>₹0.40 per minute</strong> of active video calling.</li>
+        </ul>
+
+        <h3>💰 4.2 Profit Margin Projections</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin Pack Price</th>
+                    <th>Free Calls Included</th>
+                    <th>Income per Minute</th>
+                    <th>Running Cost per Minute</th>
+                    <th>Net Profit Margin</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>₹10 Pack (30 mins)</strong></td>
+                    <td>No</td>
+                    <td>₹0.33 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--danger);"><strong>-₹0.07 / min (Acquisition Pack)</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>₹20 Pack (60 mins)</strong></td>
+                    <td>No</td>
+                    <td>₹0.33 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--danger);"><strong>-₹0.07 / min</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>₹50 Pack (150 mins)</strong></td>
+                    <td>Yes (+15 mins free)</td>
+                    <td>₹0.33 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--danger);"><strong>-₹0.07 / min</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="5"><strong>💡 Recommended Commercial Coin Packages (to ensure high profitability):</strong></td>
+                </tr>
+                <tr style="background-color: #ECFDF5;">
+                    <td><strong>₹20 Pack (40 coins)</strong></td>
+                    <td>1 coin = 1 min call</td>
+                    <td>₹0.50 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--success);"><strong>+₹0.10 / min (+20% Profit)</strong></td>
+                </tr>
+                <tr style="background-color: #ECFDF5;">
+                    <td><strong>₹50 Pack (120 coins)</strong></td>
+                    <td>1 coin = 1 min call</td>
+                    <td>₹0.41 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--success);"><strong>+₹0.01 / min (+2% Profit)</strong></td>
+                </tr>
+                <tr style="background-color: #ECFDF5;">
+                    <td><strong>₹100 Pack (250 coins)</strong></td>
+                    <td>1 coin = 1 min call</td>
+                    <td>₹0.40 / minute</td>
+                    <td>₹0.40 / minute</td>
+                    <td style="color: var(--text-dark);"><strong>₹0.00 / min (Breakeven Point)</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <p><em>*Note: To optimize profit margins, we will adjust the call consumption rate. For example, charging 2 coins/minute for premium matched calls allows us to maintain a very high profit margin across all packs.</em></p>
+
+        <h3>🎁 4.3 Free User Signup Incentive</h3>
+        <p>To accelerate user acquisition and downloads, new users receive **100 free coins** upon registration (approx. **10-12 minutes of free calling time**). This helps users experience the matching quality before buying paid coin packs.</p>
+
+        <!-- Server & Third Party Pricing Requirements -->
+        <h2>⚡ 5. Production Infrastructure Requirements</h2>
+        <p>To support high traffic and guarantee service availability at launch, we will need to transition from free developer accounts to premium tiers:</p>
+        <ul>
+            <li><strong>Render Paid Account:</strong> Web Service plans start at **$7/month** (scalable up to $85+/month for high-RAM/CPU models as concurrent users scale).</li>
+            <li><strong>MongoDB Atlas:</strong> Shared serverless tiers are free. Premium production databases start at **$9 - $57/month** depending on database read/write speeds and scaling.</li>
+            <li><strong>Agora RTC API:</strong> Provides **10,000 free minutes** every month. Paid calling plans cost **$3.90 per 1,000 minutes** of HD video calls once the free limit is exceeded.</li>
+            <li><strong>Google Developer Account:</strong> A one-time payment of **$25** is required to publish and manage apps on the Google Play Store.</li>
+        </ul>
+
+        <!-- Releases and Roadmap Timeline -->
+        <h2>📅 6. Release Versions & Target Milestones</h2>
+        <p>Features have been organized into distinct releases to ensure stability, proper compliance, and thorough testing:</p>
 
         <table>
             <thead>
                 <tr>
                     <th style="width: 25%;">Version</th>
                     <th style="width: 50%;">Core Features & Content</th>
-                    <th style="width: 25%;">Target Launch Date</th>
+                    <th style="width: 25%;">Target Date</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><strong>Version 1 (V1)</strong></td>
                     <td>• All core features currently done (matchmaking, direct chats, coins/wallet, and payments).<br>• Integration of the new <strong>"Talksy"</strong> branding (logo, taglines, visual assets, and matching color themes).</td>
-                    <td><strong>15 August 2026<br>(Play Store Release)</strong></td>
+                    <td><strong>15 August 2026<br>(Play Store Release Target)</strong></td>
                 </tr>
                 <tr>
                     <td><strong>Version 2 (V2)</strong></td>
@@ -285,14 +411,16 @@
             </tbody>
         </table>
 
-        <!-- Tech Stack Premium Status -->
-        <h2>🚀 4. Why Talksy is Highly Scalable & Premium</h2>
-        <ul>
-            <li><strong>Agora RTC:</strong> Provides top-tier video and audio stream quality (used by global apps like Clubhouse), adjusting stream quality dynamically to prevent call drops.</li>
-            <li><strong>Redis Cache:</strong> Executes database queries in RAM, returning matching pairs in milliseconds for a zero-lag queue experience.</li>
-            <li><strong>Render Hosting:</strong> A modern cloud host that guarantees 99.9% app uptime and can scale server resources automatically to handle spikes in traffic.</li>
-            <li><strong>Jetpack Compose:</strong> Google's modern Android UI framework. It ensures low battery consumption, native smooth fluid transitions, and a premium edge-to-edge liquid glass design.</li>
-        </ul>
+        <!-- External Risks & Dependencies -->
+        <h2>⚠️ 7. Critical External Dependencies & Risks</h2>
+        <div class="warning-box">
+            <h4>📌 Google Play Store Approvals & Rejections</h4>
+            <p>Publishing a video matchmaking app involves strict external factors that are out of our direct control:</p>
+            <ul>
+                <li><strong>Review Duration:</strong> Google's initial review process for new developer accounts typically takes **7 to 14 days** (and can sometimes extend up to 21 days for video/social apps).</li>
+                <li><strong>Initial Rejections:</strong> Because Talksy falls under user-generated video calling, Google has strict policies regarding User Content Moderation (UGC). It is very common for new apps of this kind to get initially rejected or requested for compliance modifications. If this occurs, we will need to quickly add content reporting, blocking, and policy updates, which may cause minor delays in our launch targets.</li>
+            </ul>
+        </div>
     </div>
 </body>
 </html>

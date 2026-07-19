@@ -45,6 +45,10 @@
 -keep class io.socket.** { *; }
 -dontwarn okio.**
 
+# Keep matchmaking socket models from being obfuscated or stripped
+-keep class com.videoChatting.echat.data.remote.MatchPartner { *; }
+-keep class com.videoChatting.echat.data.remote.MatchResponse { *; }
+
 # ----------------------------------------------------
 # Firebase Rules
 # ----------------------------------------------------

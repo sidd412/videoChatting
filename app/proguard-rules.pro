@@ -31,6 +31,7 @@
 -keep class **.*Request { *; }
 -keep class **.*Response { *; }
 -keep class **.*Dto { *; }
+-keep class **.*Item { *; }
 
 # ----------------------------------------------------
 # Agora Video RTC Rules

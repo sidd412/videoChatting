@@ -27,6 +27,11 @@
 }
 -keep class com.videoChatting.echat.data.remote.model.** { *; }
 
+# Keep all API model request, response, and Dto classes from being obfuscated or stripped
+-keep class **.*Request { *; }
+-keep class **.*Response { *; }
+-keep class **.*Dto { *; }
+
 # ----------------------------------------------------
 # Agora Video RTC Rules
 # ----------------------------------------------------

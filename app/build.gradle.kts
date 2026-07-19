@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -23,7 +25,7 @@ android {
     }
 
     // Load signing credentials securely from local.properties (not committed to git)
-    val localProperties = java.util.Properties().apply {
+    val localProperties = Properties().apply {
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             localPropertiesFile.inputStream().use { load(it) }

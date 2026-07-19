@@ -290,18 +290,60 @@
             <li><strong>Secure Payment Checkout:</strong> Payment integration via **Juspay Gateway** with secure web redirect checkout, allowing UPI, debit cards, and net banking transactions to instantly credit the user's coin balance.</li>
         </ul>
 
+        <!-- The User Journey Map -->
+        <h2>🌐 4. The User Journey Map (Step-by-Step)</h2>
+        <p>This outlines the user's progress through the app, from the first launch to a recurring call and transaction cycle:</p>
+        <div class="component-grid">
+            <div class="component-card">
+                <h3>🚪 4.1 Onboarding & Setup</h3>
+                <ul>
+                    <li>User launches the app and views the onboarding introduction (carousel cards).</li>
+                    <li>Instantly registers via <strong>Google Sign-In</strong> or uses **Guest Login** to trial the app.</li>
+                    <li>Saves basic profile details (Name, Age, Gender, Country) and instantly receives **100 free coins** as a sign-up incentive.</li>
+                </ul>
+            </div>
+            <div class="component-card">
+                <h3>🎯 4.2 Matching Loop (Discovery Screen)</h3>
+                <ul>
+                    <li>User configures their search preferences (target age, gender, and regional filter).</li>
+                    <li>Taps **"Find Match"** to enter the Redis queue.</li>
+                    <li>The system pairs them with a live online user and initiates a secure, high-definition **Agora Video Call**.</li>
+                    <li>During the call, they can:
+                        <br>&nbsp;&nbsp;• <strong>Like (Heart icon):</strong> Save as a potential contact.
+                        <br>&nbsp;&nbsp;• <strong>Add (Friend icon):</strong> Add to direct contact list.
+                        <br>&nbsp;&nbsp;• <strong>Next/Skip:</strong> Taps next to instantly matching with another person.
+                    </li>
+                </ul>
+            </div>
+            <div class="component-card">
+                <h3>💬 4.3 Chatting & Connections</h3>
+                <ul>
+                    <li>If both users add each other during the video loop, they appear in each other's **Chats list**.</li>
+                    <li>They can exchange private text messages, see online indicators, and continue the conversation without matchmaking.</li>
+                </ul>
+            </div>
+            <div class="component-card">
+                <h3>💳 4.4 Coin Consumption & Wallet Recharge</h3>
+                <ul>
+                    <li>Active call time consumes 1 coin per minute.</li>
+                    <li>If coins drop below 10, a friendly warning prompts them to recharge.</li>
+                    <li>User navigates to the **Wallet**, selects a coin package, and buys instantly via UPI or card using Juspay checkout, adding coins to their balance to continue calling.</li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Financial Projections & Economics -->
-        <h2>📊 4. Economics & Unit Cost Analysis</h2>
+        <h2>📊 5. Economics & Unit Cost Analysis</h2>
         <p>To ensure high profitability, we analyzed call costs versus pricing packages. Real-time video calling has very low overhead, leaving high margins on coin purchases.</p>
         
-        <h3>🪙 4.1 Unit Cost per Minute of Calling</h3>
+        <h3>🪙 5.1 Unit Cost per Minute of Calling</h3>
         <ul>
             <li><strong>Agora RTC Cost:</strong> ~$0.0039 per minute (approx. <strong>₹0.32/min</strong> for both caller and receiver combined).</li>
             <li><strong>Server & Bandwidth:</strong> Approx. <strong>₹0.08/min</strong> for data transfer, socket signaling, and database reads.</li>
             <li><strong>Total Running Cost:</strong> <strong>₹0.40 per minute</strong> of active video calling.</li>
         </ul>
 
-        <h3>💰 4.2 Profit Margin Projections</h3>
+        <h3>💰 5.2 Profit Margin Projections</h3>
         <table>
             <thead>
                 <tr>
@@ -362,11 +404,11 @@
         </table>
         <p><em>*Note: To optimize profit margins, we will adjust the call consumption rate. For example, charging 2 coins/minute for premium matched calls allows us to maintain a very high profit margin across all packs.</em></p>
 
-        <h3>🎁 4.3 Free User Signup Incentive</h3>
+        <h3>🎁 5.3 Free User Signup Incentive</h3>
         <p>To accelerate user acquisition and downloads, new users receive **100 free coins** upon registration (approx. **10-12 minutes of free calling time**). This helps users experience the matching quality before buying paid coin packs.</p>
 
         <!-- Server & Third Party Pricing Requirements -->
-        <h2>⚡ 5. Production Infrastructure Requirements</h2>
+        <h2>⚡ 6. Production Infrastructure Requirements</h2>
         <p>To support high traffic and guarantee service availability at launch, we will need to transition from free developer accounts to premium tiers:</p>
         <ul>
             <li><strong>Render Paid Account:</strong> Web Service plans start at **$7/month** (scalable up to $85+/month for high-RAM/CPU models as concurrent users scale).</li>
@@ -376,7 +418,7 @@
         </ul>
 
         <!-- Releases and Roadmap Timeline -->
-        <h2>📅 6. Release Versions & Target Milestones</h2>
+        <h2>📅 7. Release Versions & Target Milestones</h2>
         <p>Features have been organized into distinct releases to ensure stability, proper compliance, and thorough testing:</p>
 
         <table>
@@ -412,7 +454,7 @@
         </table>
 
         <!-- External Risks & Dependencies -->
-        <h2>⚠️ 7. Critical External Dependencies & Risks</h2>
+        <h2>⚠️ 8. Critical External Dependencies & Risks</h2>
         <div class="warning-box">
             <h4>📌 Google Play Store Approvals & Rejections</h4>
             <p>Publishing a video matchmaking app involves strict external factors that are out of our direct control:</p>

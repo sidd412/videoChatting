@@ -10,7 +10,14 @@
 # ----------------------------------------------------
 -dontwarn retrofit2.**
 -keep class retrofit2.** { *; }
--keepattributes RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations
+-keepattributes RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, Signature
+
+# Keep generic signature of Call, Response (R8 full mode strips signatures from non-kept items)
+-keep,allowobfuscation,allowshrinking interface retrofit2.Call
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+
+# Keep suspend function Continuations generic signatures
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
 # ----------------------------------------------------
 # GSON & Model Classes Rules (Keep fields for API parsing)

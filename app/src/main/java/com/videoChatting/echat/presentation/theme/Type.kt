@@ -17,7 +17,7 @@ val NunitoSans = FontFamily(
 )
 
 // Set of Material typography styles that use Nunito Sans as the default font family
-val Typography = Typography(
+val EChatTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = NunitoSans,
         fontWeight = FontWeight.Normal,

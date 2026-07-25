@@ -38,7 +38,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxHeight(.9f)
+            modifier = Modifier.fillMaxHeight(.85f)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.talksy_logo),
@@ -51,7 +51,8 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             Text(
                 text = "Trendy Vibe & Real Chat",
                 color = TalksyLogoPurple.copy(alpha = 0.8f),
-                fontSize = 17.sp
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
     }

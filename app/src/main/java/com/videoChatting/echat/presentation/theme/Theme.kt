@@ -103,7 +103,7 @@ fun EChatTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = EChatTypography,
         content = content
     )
 }

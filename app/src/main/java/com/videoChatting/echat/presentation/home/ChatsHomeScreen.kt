@@ -78,7 +78,7 @@ fun ChatsHomeScreen(
             Column(modifier = Modifier.padding(bottom = 10.dp)){
                 // Title bar
                 TopAppBar(
-                    title = { Text("Chats", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
+                    title = { Text("Talksy", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                     actions = {
                         val currentCoins by viewModel.currentCoins.collectAsState()
                         TextButton(onClick = { navController.navigate("wallet") }) {
@@ -188,7 +188,7 @@ fun ChatsHomeScreen(
                     if (filteredChats.isEmpty()) {
                         item{
                             Box(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillParentMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -207,9 +207,6 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 Spacer(modifier = Modifier.height(48.dp))
                 
                 RadarScanner()
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                CircularProgressIndicator(color = CyberCyan, strokeWidth = 3.dp)
             }
         }
         else if (state is DiscoveryState.Error) {

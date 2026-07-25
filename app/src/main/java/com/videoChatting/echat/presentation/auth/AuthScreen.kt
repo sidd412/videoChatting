@@ -98,7 +98,7 @@ fun AuthScreen(
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "eChat",
+                text = "Talksy",
                 fontSize = 48.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor

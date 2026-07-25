@@ -13,6 +13,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.videoChatting.echat.R
+import com.videoChatting.echat.presentation.theme.TalksyLogoPurple
+
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
     LaunchedEffect(key1 = true) {
@@ -20,17 +30,29 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         onSplashFinished()
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+            .background(Color.White),
     ) {
-        Text(
-            text = "eChat",
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxHeight(.9f)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.talksy_logo),
+                contentDescription = "Talksy Logo",
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()){
+            Text(
+                text = "Trendy Vibe & Real Chat",
+                color = TalksyLogoPurple.copy(alpha = 0.8f),
+                fontSize = 17.sp
+            )
+        }
     }
 }

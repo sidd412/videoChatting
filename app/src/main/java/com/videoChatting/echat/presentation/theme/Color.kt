@@ -11,6 +11,7 @@ val ElectricIndigo = Color(0xFF7C3AED)
 val ElectricViolet = Color(0xFF8B5CF6)
 val CyberCyan = Color(0xFF06B6D4)
 val NeonRose = Color(0xFFF43F5E)
+val TalksyLogoPurple = Color(0xFF4A1A85)
 
 val GlassBackground = Color(0x14FFFFFF) // White with 8% opacity for better frosted effect
 val GlassBorder = Color(0x24FFFFFF)     // White with 14% opacity for clean thin glass borders

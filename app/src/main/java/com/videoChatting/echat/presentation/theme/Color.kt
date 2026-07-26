@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 // Premium Cyber-Midnight & Neon Color Palette (Vibrant for Glassmorphism)
 val CyberMidnight = Color(0xFF0C091A)
+
+val purple_200 = Color(0xFFBB86FC)
 val ObsidianBlack = Color(0xFF17113A)
 val DeepIndigo = Color(0xFF221956)
 

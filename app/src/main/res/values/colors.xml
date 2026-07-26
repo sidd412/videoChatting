@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="talksy_logo_purple">#FF4A1A85</color>
+    <color name="splash_background">#17113A</color>
 </resources>

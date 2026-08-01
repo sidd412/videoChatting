@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.videoChatting.echat.presentation.theme.*
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 data class DummyChat(
     val id: String, 
@@ -239,14 +241,23 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
         Box(
             modifier = Modifier.size(56.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (chat.avatar.isNotEmpty()) {
+                AsyncImage(
+                    model = chat.avatar,
+                    contentDescription = "Profile",
+                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             if (chat.unreadCount > 0) {
                 Box(
@@ -277,9 +288,10 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = chat.lastMessage,
+                text = "It's a ${chat.lastMessage} profile",
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                 maxLines = 1,
+                fontSize = 13.sp,
                 overflow = TextOverflow.Ellipsis
             )
         }

@@ -1,6 +1,7 @@
 package com.videoChatting.echat.presentation.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,11 +11,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.navigation.Screen
+import com.videoChatting.echat.presentation.theme.*
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun ProfileScreen(
@@ -35,103 +41,204 @@ fun ProfileScreen(
     val userProfile by viewModel.userProfile.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
+            .background(getThemeBackgroundGradient())
+            .padding(top = 25.dp) // Exactly 25dp padding from top status bar
+            .padding(horizontal = 16.dp)
     ) {
-        Text("My Profile", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "My Profile", 
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold, 
+            color = getThemeTextColor()
+        )
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile Image Header
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Person, contentDescription = "Profile", modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            // Edit Icon
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(x = 40.dp, y = 0.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { /* Navigate to EditProfileScreen */ }
-                    .padding(8.dp)
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onPrimary)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Profile Details
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        // Fixed title, scrollable content area below
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                ProfileField("Name", userProfile?.name ?: "Guest User")
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                ProfileField("Email", userProfile?.email ?: "Not available")
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                ProfileField("Gender", userProfile?.gender ?: "Not Specified")
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                ProfileField("Bio", "Hey there! I am using eChat.") // Placeholder bio since not in UserDto
+            Text(
+                text = "Account Details",
+                fontSize = 15.sp,
+                color = getThemeSubTextColor(),
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Horizontal Rectangular Card (Rounded Corners, Glassmorphic style)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, getThemeGlassBorder(), RoundedCornerShape(24.dp))
+                    .clickable { appNavController?.navigate(Screen.EditProfile.route) },
+                colors = CardDefaults.cardColors(containerColor = getThemeGlassBackground()),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Profile Avatar with Edit Button Overlay on Left
+                    Box(
+                        modifier = Modifier.size(80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val avatar = userProfile?.avatar ?: ""
+                        if (avatar.isNotEmpty()) {
+                            AsyncImage(
+                                model = avatar,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.size(80.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person, 
+                                    contentDescription = "Profile Picture", 
+                                    modifier = Modifier.size(44.dp), 
+                                    tint = getThemeTextColor()
+                                )
+                            }
+                        }
+                        // Overlay Edit Icon
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.BottomEnd)
+                                .clip(CircleShape)
+                                .background(ElectricIndigo)
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit, 
+                                contentDescription = "Edit Avatar", 
+                                modifier = Modifier.size(12.dp), 
+                                tint = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Name (with Gender suffix) & Email details
+                    Column(modifier = Modifier.weight(1f)) {
+                        val genderSuffix = when (userProfile?.gender) {
+                            "Male" -> " (M)"
+                            "Female" -> " (F)"
+                            else -> ""
+                        }
+                        val nameWithGender = "${userProfile?.name ?: "Guest User"}$genderSuffix"
+
+                        Text(
+                            text = nameWithGender, 
+                            fontSize = 14.sp, 
+                            fontWeight = FontWeight.Bold, 
+                            color = getThemeTextColor(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+//                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = userProfile?.email ?: "No email registered", 
+                            fontSize = 12.sp, 
+                            color = getThemeSubTextColor().copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+//                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Coin Balance: ${userProfile?.coinsBalance ?: 0}", 
+                            fontSize = 12.sp,
+                            color = ElectricViolet,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-        // Extra Sections
-        Text("More", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-        Spacer(modifier = Modifier.height(8.dp))
+            // Single block containing Match Preferences, Wallet, Purchases
+            Text(
+                text = "Manage Profile & Wallet", 
+                fontSize = 15.sp, 
+                color = getThemeSubTextColor(), 
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, getThemeGlassBorder(), RoundedCornerShape(20.dp)),
+            colors = CardDefaults.cardColors(containerColor = getThemeGlassBackground()),
+            shape = RoundedCornerShape(20.dp)
         ) {
             Column {
-                SettingsListItem(icon = Icons.AutoMirrored.Filled.HelpOutline, title = "FAQs")
-                HorizontalDivider()
-                SettingsListItem(icon = Icons.Default.SupportAgent, title = "Help and Support")
-                HorizontalDivider()
-                SettingsListItem(icon = Icons.Default.PrivacyTip, title = "Privacy Policy")
-                HorizontalDivider()
-                SettingsListItem(icon = Icons.Default.Description, title = "Terms of Use")
-                HorizontalDivider()
-                SettingsListItem(icon = Icons.Default.Info, title = "About eChat")
+                ProfileSettingsItem(
+                    icon = Icons.Default.Tune, 
+                    title = "Match Preferences",
+                    onClick = { appNavController?.navigate(Screen.Preferences.route) }
+                )
+                HorizontalDivider(color = getThemeGlassBorder())
+                ProfileSettingsItem(
+                    icon = Icons.Default.MonetizationOn, 
+                    title = "My Wallet",
+                    onClick = { appNavController?.navigate("wallet") }
+                )
+                HorizontalDivider(color = getThemeGlassBorder())
+                ProfileSettingsItem(
+                    icon = Icons.Default.History, 
+                    title = "My Purchases",
+                    onClick = { appNavController?.navigate(Screen.PurchaseHistory.route) }
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(120.dp))
 
+        // Logout Button
         Button(
             onClick = { showLogoutDialog = true },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .border(1.dp, getThemeGlassBorder(), RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = getThemeGlassBackground())
         ) {
-            Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onError)
+            Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = getThemeTextColor())
         }
-        
         Spacer(modifier = Modifier.height(100.dp))
+    }
     }
 
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text("Logout") },
-            text = { Text("Are you sure you want to logout from eChat?") },
+            text = { Text("Are you sure you want to logout from Talksy?") },
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
@@ -154,25 +261,35 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileField(label: String, value: String) {
-    Column {
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(value, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
-fun SettingsListItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, onClick: () -> Unit = {}) {
+fun ProfileSettingsItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector, 
+    title: String, 
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = title, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Icon(
+            imageVector = icon, 
+            contentDescription = title, 
+            tint = getThemeTextColor()
+        )
         Spacer(modifier = Modifier.width(16.dp))
-        Text(title, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = title, 
+            fontSize = 15.sp, 
+            color = getThemeTextColor(),
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+            contentDescription = null, 
+            tint = getThemeSubTextColor().copy(alpha = 0.5f)
+        )
     }
 }

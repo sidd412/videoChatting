@@ -22,13 +22,22 @@ import com.google.android.gms.common.api.ApiException
 import com.videoChatting.echat.data.local.SessionManager
 import com.videoChatting.echat.presentation.theme.*
 
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.navigation.Screen
+
 @Composable
 fun AuthScreen(
     onLoginSuccess: () -> Unit,
+    navController: NavController? = null,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
+    var consentChecked by remember { mutableStateOf(false) }
     
     // Check if token already exists (auto-login)
     val sessionManager = remember { SessionManager(context) }
@@ -109,14 +118,67 @@ fun AuthScreen(
                 fontSize = 16.sp,
                 color = subTextColor
             )
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Consent Checkbox and policy links
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            ) {
+                Checkbox(
+                    checked = consentChecked,
+                    onCheckedChange = { consentChecked = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = ElectricIndigo,
+                        uncheckedColor = subTextColor.copy(alpha = 0.6f)
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                val annotatedText = buildAnnotatedString {
+                    append("I agree to the ")
+                    pushStringAnnotation(tag = "TOS", annotation = "tos")
+                    withStyle(style = SpanStyle(color = ElectricViolet, fontWeight = FontWeight.Bold)) {
+                        append("Terms of Service")
+                    }
+                    pop()
+                    append(" and ")
+                    pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+                    withStyle(style = SpanStyle(color = ElectricViolet, fontWeight = FontWeight.Bold)) {
+                        append("Privacy Policy")
+                    }
+                    pop()
+                    append(".")
+                }
+
+                ClickableText(
+                    text = annotatedText,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = subTextColor),
+                    onClick = { offset ->
+                        annotatedText.getStringAnnotations(tag = "TOS", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                navController?.navigate("terms_of_service")
+                            }
+                        annotatedText.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                navController?.navigate("privacy")
+                            }
+                    }
+                )
+            }
 
             // Continue with Google Button
             OutlinedButton(
                 onClick = {
-                    // Sign out first to always show Google account selection dialog
-                    googleSignInClient.signOut().addOnCompleteListener {
-                        googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                    if (consentChecked) {
+                        // Sign out first to always show Google account selection dialog
+                        googleSignInClient.signOut().addOnCompleteListener {
+                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                        }
+                    } else {
+                        Toast.makeText(context, "Please agree to Terms and Privacy Policy first", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -125,7 +187,7 @@ fun AuthScreen(
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
                 border = BorderStroke(1.dp, cardBorder),
-                enabled = state !is AuthState.Loading
+                enabled = consentChecked && state !is AuthState.Loading
             ) {
                 if (state is AuthState.Loading) {
                     CircularProgressIndicator(color = ElectricIndigo, modifier = Modifier.size(24.dp))

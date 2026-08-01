@@ -87,7 +87,7 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
         composable(Screen.Auth.route) {
             AuthScreen(onLoginSuccess = {
                 navigateNext()
-            })
+            }, navController = navController)
         }
         composable(Screen.Onboarding.route) {
             OnboardingScreen(onOnboardingFinished = {
@@ -111,7 +111,7 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
             })
         }
         
-        // Placeholder Screens
+        // Placeholder / Actual Screens
         composable(Screen.EditProfile.route) {
             com.videoChatting.echat.presentation.profile.EditProfileScreen(navController)
         }
@@ -128,10 +128,22 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
             com.videoChatting.echat.presentation.settings.PlaceholderScreen(navController, "Notification Settings")
         }
         composable(Screen.Privacy.route) {
-            com.videoChatting.echat.presentation.settings.PlaceholderScreen(navController, "Privacy Settings")
+            com.videoChatting.echat.presentation.settings.PrivacyPolicyScreen(navController)
+        }
+        composable("terms_of_service") {
+            com.videoChatting.echat.presentation.settings.TermsOfServiceScreen(navController)
+        }
+        composable("about_us") {
+            com.videoChatting.echat.presentation.settings.AboutUsScreen(navController)
+        }
+        composable("help_support") {
+            com.videoChatting.echat.presentation.settings.HelpSupportScreen(navController)
+        }
+        composable("contact_us") {
+            com.videoChatting.echat.presentation.settings.ContactUsScreen(navController)
         }
         composable(Screen.Theme.route) {
-            com.videoChatting.echat.presentation.settings.PlaceholderScreen(navController, "Theme Settings")
+            com.videoChatting.echat.presentation.settings.ThemeSettingsScreen(navController)
         }
         composable(Screen.ConsentNotifications.route) {
             com.videoChatting.echat.presentation.settings.ConsentNotificationsScreen(navController)

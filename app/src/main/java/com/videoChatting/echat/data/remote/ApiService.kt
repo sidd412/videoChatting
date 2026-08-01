@@ -79,4 +79,22 @@ interface ApiService {
 
     @GET("payment/history")
     suspend fun getPurchaseHistory(): Response<com.videoChatting.echat.presentation.wallet.PurchaseHistoryResponse>
+
+    @POST("requests")
+    suspend fun raiseRequest(
+        @Body request: com.videoChatting.echat.data.remote.RaiseRequestDto
+    ): Response<com.videoChatting.echat.data.remote.RaiseRequestResponse>
 }
+
+data class RaiseRequestDto(
+    val type: String,
+    val targetId: String? = null,
+    val reason: String
+)
+
+data class RaiseRequestResponse(
+    val success: Boolean,
+    val message: String?,
+    val requestId: String?
+)
+

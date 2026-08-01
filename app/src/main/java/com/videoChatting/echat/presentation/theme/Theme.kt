@@ -7,11 +7,17 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+
+// Dynamic Theme Configuration object
+object ThemeConfig {
+    var themeSelection = mutableStateOf("dark") // default is dark as requested
+}
 
 // Rich Premium Background Gradient for beautiful Glassmorphism blending (Dark Mode)
 val PremiumBackgroundGradientDark = Brush.verticalGradient(
@@ -25,33 +31,68 @@ val PremiumBackgroundGradientLight = Brush.verticalGradient(
 
 @Composable
 fun getThemeBackgroundGradient(): Brush {
-    return if (isSystemInDarkTheme()) PremiumBackgroundGradientDark else PremiumBackgroundGradientLight
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) PremiumBackgroundGradientDark else PremiumBackgroundGradientLight
 }
 
 @Composable
 fun getThemeGlassBackground(): Color {
-    return  GlassBackground
-//    return if (isSystemInDarkTheme()) GlassBackground else Color.White.copy(alpha = 0.2f)
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) GlassBackground else Color.White.copy(alpha = 0.2f)
 }
 
 @Composable
 fun getThemeGlassBorder(): Color {
-    return if (isSystemInDarkTheme()) GlassBorder else Color(0xFFCBD5E1) // clean light slate border
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) GlassBorder else Color(0xFFCBD5E1) // clean light slate border
 }
 
 @Composable
 fun getThemeGlassBorderSelected(): Color {
-    return if (isSystemInDarkTheme()) GlassBorderSelected else ElectricIndigo
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) GlassBorderSelected else ElectricIndigo
 }
 
 @Composable
 fun getThemeTextColor(): Color {
-    return if (isSystemInDarkTheme()) Color.White else Color(0xFF0F172A)
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) Color.White else Color(0xFF0F172A)
 }
 
 @Composable
 fun getThemeSubTextColor(): Color {
-    return if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.6f) else Color(0xFF475569)
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    return if (isDark) Color.White.copy(alpha = 0.6f) else Color(0xFF475569)
 }
 
 private val DarkColorScheme = darkColorScheme(
@@ -84,9 +125,16 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun EChatTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
+    val systemDark = isSystemInDarkTheme()
+    val selection = ThemeConfig.themeSelection.value
+    val darkTheme = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> systemDark
+    }
+
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {

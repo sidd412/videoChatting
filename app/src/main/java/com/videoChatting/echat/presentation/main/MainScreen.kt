@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.videoChatting.echat.presentation.discovery.DiscoveryScreen
 import com.videoChatting.echat.presentation.home.ChatsHomeScreen
 import com.videoChatting.echat.presentation.profile.ProfileScreen
+import com.videoChatting.echat.presentation.theme.ThemeConfig
 import com.videoChatting.echat.presentation.settings.SettingsScreen
 import com.videoChatting.echat.presentation.theme.*
 
@@ -60,7 +61,12 @@ fun MainScreen(appNavController: NavController) {
 fun GlassmorphicBottomBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val selection = ThemeConfig.themeSelection.value
+    val isDark = when (selection) {
+        "light" -> false
+        "dark" -> true
+        else -> androidx.compose.foundation.isSystemInDarkTheme()
+    }
     val bottomBgColor = if (isDark) ObsidianBlack else Color.White
     val unselectedColor = if (isDark) Color.White.copy(alpha = 0.6f) else Color(0xFF64748B)
 
@@ -117,12 +123,12 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 )
             )
             NavigationBarItem(
-                icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                label = { Text("Profile") },
-                selected = currentRoute == "profile",
+                icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                label = { Text("Settings") },
+                selected = currentRoute == "settings",
                 onClick = {
-                    if (currentRoute != "profile") {
-                        navController.navigate("profile") {
+                    if (currentRoute != "settings") {
+                        navController.navigate("settings") {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }
@@ -137,12 +143,12 @@ fun GlassmorphicBottomBar(navController: NavController) {
                 )
             )
             NavigationBarItem(
-                icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                label = { Text("Settings") },
-                selected = currentRoute == "settings",
+                icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                label = { Text("Profile") },
+                selected = currentRoute == "profile",
                 onClick = {
-                    if (currentRoute != "settings") {
-                        navController.navigate("settings") {
+                    if (currentRoute != "profile") {
+                        navController.navigate("profile") {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }

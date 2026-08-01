@@ -41,6 +41,9 @@ class MainActivity : ComponentActivity() {
 
         askNotificationPermission()
 
+        val sessionManager = com.videoChatting.echat.data.local.SessionManager(this)
+        com.videoChatting.echat.presentation.theme.ThemeConfig.themeSelection.value = sessionManager.getTheme()
+
         setContent {
             EChatTheme {
                 Surface(

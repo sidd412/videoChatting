@@ -50,4 +50,12 @@ class SessionManager @Inject constructor(context: Context) {
     fun clearSession() {
         prefs.edit().clear().apply()
     }
+
+    fun saveTheme(theme: String) {
+        prefs.edit().putString("app_theme", theme).apply()
+    }
+
+    fun getTheme(): String {
+        return prefs.getString("app_theme", "dark") ?: "dark"
+    }
 }

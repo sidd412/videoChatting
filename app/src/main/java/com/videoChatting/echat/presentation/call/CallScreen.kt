@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -32,12 +33,28 @@ import androidx.core.content.ContextCompat
 import com.videoChatting.echat.utils.Constants
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import com.videoChatting.echat.data.remote.ApiService
+import com.videoChatting.echat.data.remote.RaiseRequestDto
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import kotlinx.coroutines.launch
 
 @Composable
 fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
     val context = LocalContext.current
     var isMuted by remember { mutableStateOf(false) }
     var isVideoMuted by remember { mutableStateOf(false) }
+    var showReportDialog1 by remember { mutableStateOf(false) }
+    var showReportDialog2 by remember { mutableStateOf(false) }
+    var selectedReason by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     var rtcEngine by remember { mutableStateOf<RtcEngine?>(null) }
     var localSurfaceView by remember { mutableStateOf<SurfaceView?>(null) }
@@ -159,6 +176,22 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
                     tint = Color.White
                 )
             }
+
+            // Report User Button (Top Left - Shifted)
+            IconButton(
+                onClick = { showReportDialog1 = true },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 80.dp, top = 16.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red.copy(alpha = 0.8f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = "Report User",
+                    tint = Color.White
+                )
+            }
         }
 
         // Local Video (PiP)
@@ -241,6 +274,108 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
                     tint = if (isVideoMuted) Color.Black else Color.White
                 )
             }
+        }
+
+        // Report Dialog 1 (Reason Selection)
+        if (showReportDialog1) {
+            AlertDialog(
+                onDismissRequest = { 
+                    showReportDialog1 = false 
+                    selectedReason = ""
+                },
+                title = { Text("Report User (Step 1 of 2)", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Please select a reason for reporting this user:")
+                        Spacer(modifier = Modifier.height(12.dp))
+                        val reasons = listOf("Nudity / Sexual Content", "Harassment / Abuse", "Spam / Scam", "Other Violations")
+                        reasons.forEach { reason ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedReason = reason }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                RadioButton(
+                                    selected = (selectedReason == reason),
+                                    onClick = { selectedReason = reason },
+                                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(reason)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showReportDialog1 = false
+                            showReportDialog2 = true
+                        },
+                        enabled = selectedReason.isNotEmpty()
+                    ) {
+                        Text("Continue", color = if (selectedReason.isNotEmpty()) MaterialTheme.colorScheme.primary else Color.Gray, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { 
+                        showReportDialog1 = false 
+                        selectedReason = ""
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Report Dialog 2 (Confirmation)
+        if (showReportDialog2) {
+            AlertDialog(
+                onDismissRequest = { showReportDialog2 = false },
+                title = { Text("Confirm Abuse Report (Step 2 of 2)", fontWeight = FontWeight.Bold) },
+                text = { Text("Are you absolutely sure you want to report and block this user? This will end the call immediately.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showReportDialog2 = false
+                            coroutineScope.launch {
+                                try {
+                                    val sessionManager = com.videoChatting.echat.data.local.SessionManager(context)
+                                    
+                                    val retrofit = Retrofit.Builder()
+                                        .baseUrl(com.videoChatting.echat.utils.Constants.BASE_URL)
+                                        .addConverterFactory(GsonConverterFactory.create())
+                                        .build()
+                                    val service = retrofit.create(ApiService::class.java)
+
+                                    service.raiseRequest(
+                                        RaiseRequestDto(
+                                            type = "report_user",
+                                            targetId = remoteUid.toString(),
+                                            reason = selectedReason
+                                        )
+                                    )
+                                    
+                                    Toast.makeText(context, "User reported and blocked successfully.", Toast.LENGTH_LONG).show()
+                                    onCallEnded()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Network Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                                    onCallEnded() // End the call anyway for safety
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Yes, Report & Block", color = Color.Red, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showReportDialog2 = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

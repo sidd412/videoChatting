@@ -24,6 +24,7 @@ okhttp = "4.12.0"
 socketio = "2.1.0"
 playServicesAuth = "21.1.1"
 playServicesLocation = "21.2.0"
+coil = "2.6.0"
 
 [libraries]
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
@@ -67,6 +68,7 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 socket-io-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

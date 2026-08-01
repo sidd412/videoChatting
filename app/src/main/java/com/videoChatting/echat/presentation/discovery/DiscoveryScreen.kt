@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,6 +68,9 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     var isVideoMuted by remember { mutableStateOf(false) }
     var chatText by remember { mutableStateOf("") }
     var agoraStatus by remember { mutableStateOf("") }
+    
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reportReason by remember { mutableStateOf("") }
 
     var rtcEngine by remember { mutableStateOf<RtcEngine?>(null) }
     var localSurfaceView by remember { mutableStateOf<SurfaceView?>(null) }
@@ -384,6 +388,23 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                     tint = Color.White
                                 )
                             }
+
+                            IconButton(
+                                onClick = { 
+                                    if (state is DiscoveryState.Matched) {
+                                        showReportDialog = true
+                                    }
+                                },
+                                modifier = Modifier
+                                    .background(cardBackground, shape = CircleShape)
+                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Flag, 
+                                    contentDescription = "Report User", 
+                                    tint = Color.Red
+                                )
+                            }
                         }
                     } else {
                         Column(
@@ -508,6 +529,83 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 }
             }
         }
+    }
+
+    if (showReportDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showReportDialog = false 
+                reportReason = ""
+            },
+            title = {
+                Text(
+                    text = "Report User",
+                    fontWeight = FontWeight.Bold,
+                    color = getThemeTextColor()
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Specify a reason to report this user for administrative review:",
+                        fontSize = 14.sp,
+                        color = getThemeSubTextColor(),
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    OutlinedTextField(
+                        value = reportReason,
+                        onValueChange = { reportReason = it },
+                        label = { Text("Reason for report") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = getThemeTextColor(),
+                            unfocusedTextColor = getThemeTextColor()
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (reportReason.trim().isEmpty()) {
+                            Toast.makeText(context, "Please enter a reason", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (state is DiscoveryState.Matched) {
+                            val partnerId = (state as DiscoveryState.Matched).match.partner.userId
+                            viewModel.reportUser(
+                                targetUserId = partnerId,
+                                reason = reportReason,
+                                onSuccess = {
+                                    Toast.makeText(context, "Report submitted successfully", Toast.LENGTH_SHORT).show()
+                                    showReportDialog = false
+                                    reportReason = ""
+                                    viewModel.nextPerson()
+                                },
+                                onError = { error ->
+                                    Toast.makeText(context, "Failed to submit report: $error", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Submit Report", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showReportDialog = false 
+                        reportReason = ""
+                    }
+                ) {
+                    Text("Cancel", color = getThemeTextColor())
+                }
+            },
+            containerColor = getThemeGlassBackground(),
+            modifier = Modifier.border(1.dp, getThemeGlassBorder(), RoundedCornerShape(28.dp))
+        )
     }
 }
 

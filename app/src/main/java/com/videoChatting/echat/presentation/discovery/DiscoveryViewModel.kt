@@ -7,6 +7,8 @@ import com.videoChatting.echat.data.remote.MatchResponse
 import com.videoChatting.echat.data.remote.SocketEvent
 import com.videoChatting.echat.domain.repository.MatchmakingRepository
 import com.videoChatting.echat.domain.repository.UserRepository
+import com.videoChatting.echat.data.remote.ApiService
+import com.videoChatting.echat.data.remote.RaiseRequestDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +27,8 @@ sealed class DiscoveryState {
 class DiscoveryViewModel @Inject constructor(
     private val matchmakingRepository: MatchmakingRepository,
     private val userRepository: UserRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val apiService: ApiService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DiscoveryState>(DiscoveryState.Idle)
@@ -114,6 +117,27 @@ class DiscoveryViewModel @Inject constructor(
     fun toggleAdd(targetUserId: String, isAdded: Boolean) {
         viewModelScope.launch {
             userRepository.toggleInteraction(targetUserId, "added", isAdded)
+        }
+    }
+
+    fun reportUser(targetUserId: String, reason: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val req = RaiseRequestDto(
+                    type = "report_user",
+                    targetId = targetUserId,
+                    reason = reason
+                )
+                val response = apiService.raiseRequest(req)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    onSuccess()
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: response.message() ?: "Unknown error"
+                    onError(errorMsg)
+                }
+            } catch (e: Exception) {
+                onError(e.localizedMessage ?: "Unknown error")
+            }
         }
     }
 

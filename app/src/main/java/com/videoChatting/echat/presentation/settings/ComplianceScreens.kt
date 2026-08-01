@@ -16,6 +16,15 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -77,42 +86,56 @@ fun PrivacyPolicyScreen(navController: NavController) {
                         
                         PolicySection(
                             title = "1. Introduction & Global Standards",
-                            content = "Talksy (collectively referred to as 'we', 'our', or 'us') is committed to protecting your privacy. This Privacy Policy outlines how we collect, process, secure, and share your personal data. We comply with global data protection standards, including the General Data Protection Regulation (GDPR), California Consumer Privacy Act (CCPA), and Children's Online Privacy Protection Act (COPPA). By creating an account or using the app, you consent to our practices."
+                            content = "Talksy (collectively referred to as 'we', 'our', or 'us') is committed to protecting your privacy. This Privacy Policy outlines how we collect, process, secure, and share your personal data. We comply with global data protection standards, including the General Data Protection Regulation (GDPR), California Consumer Privacy Act (CCPA), and Children's Online Privacy Protection Act (COPPA). By creating an account or using the app, you consent to our practices.",
+                            icon = Icons.Default.Info
                         )
                         
                         PolicySection(
                             title = "2. Comprehensive Information We Collect",
-                            content = "• Account Profile: Authentication is handled securely via Google Sign-In or Guest session parameters. We receive and store your email address, full name, avatar picture url, and Google unique identifier.\n\n• Video & Audio Streams: To support live matches, your camera and mic streams are transmitted directly to your partner using Agora RTC peer-to-peer nodes. We never record, intercept, intercept metadata of, or store video/audio calls on our databases. All real-time streams are private.\n\n• Location Data: The app processes geolocation parameters locally to match users by region/country. Precise coordinates (latitude/longitude) are only used locally and are not persistently stored on our servers. Your matches only see your generalized country.\n\n• Push Notification Tokens: We collect and upload Firebase Cloud Messaging (FCM) tokens to route call invites and chat notifications. You can disable this in your system settings."
+                            content = "• Account Profile: Authentication is handled securely via Google Sign-In or Guest session parameters. We receive and store your email address, full name, avatar picture url, and Google unique identifier.\n\n• Video & Audio Streams: To support live matches, your camera and mic streams are transmitted directly to your partner using Agora RTC peer-to-peer nodes. We never record, intercept, intercept metadata of, or store video/audio calls on our databases. All real-time streams are private.\n\n• Location Data: The app processes geolocation parameters locally to match users by region/country. Precise coordinates (latitude/longitude) are only used locally and are not persistently stored on our servers. Your matches only see your generalized country.\n\n• Push Notification Tokens: We collect and upload Firebase Cloud Messaging (FCM) tokens to route call invites and chat notifications. You can disable this in your system settings.",
+                            icon = Icons.Default.Assignment
                         )
                         
                         PolicySection(
                             title = "3. Matchmaking Policy & Data Processing",
-                            content = "Matchmaking runs dynamically using in-memory caches (Redis) to group online users. Your matching filters (age range, gender preference, and country) are processed instantly to generate pairs and are automatically cleared from active memory when you leave the queue. We do not track or build behavioral profiling directories of your calling history."
+                            content = "Matchmaking runs dynamically using in-memory caches (Redis) to group online users. Your matching filters (age range, gender preference, and country) are processed instantly to generate pairs and are automatically cleared from active memory when you leave the queue. We do not track or build behavioral profiling directories of your calling history.",
+                            icon = Icons.Default.Group
                         )
                         
                         PolicySection(
                             title = "4. Consent-Before-Chat Policy",
-                            content = "To protect user privacy and prevent harassment, Talksy enforces a strict Consent-Before-Chat policy. You cannot initiate direct text messages or call users outside the discovery queue unless both parties mutually add each other during a video match. Once mutual consent is established, a chat room is created, allowing messaging. Consent can be revoked at any time by blocking the user."
+                            content = "To protect user privacy and prevent harassment, Talksy enforces a strict Consent-Before-Chat policy. You cannot initiate direct text messages or call users outside the discovery queue unless both parties mutually add each other during a video match. Once mutual consent is established, a chat room is created, allowing messaging. Consent can be revoked at any time by blocking the user.",
+                            icon = Icons.Default.Verified
                         )
                         
                         PolicySection(
                             title = "5. Notification & Foreground Services Policy",
-                            content = "We utilize foreground services and Firebase Cloud Messaging (FCM) to trigger instant notifications for call invitations. We collect, refresh, and store device notification tokens solely to deliver real-time chat alerts and call signaling. Users have granular control to toggle notifications within Settings or completely disable them via Android System Settings."
+                            content = "We utilize foreground services and Firebase Cloud Messaging (FCM) to trigger instant notifications for call invitations. We collect, refresh, and store device notification tokens solely to deliver real-time chat alerts and call signaling. Users have granular control to toggle notifications within Settings or completely disable them via Android System Settings.",
+                            icon = Icons.Default.Notifications
                         )
                         
                         PolicySection(
                             title = "6. Security & Encryption Standards",
-                            content = "All API communications between the application and the backend are encrypted using Transport Layer Security (TLS/HTTPS). User profiles and metadata are stored on MongoDB databases protected by strict IAM policies. Agora call sessions use dynamic security token tokens generated by our backend node.js server for every single call to prevent unauthorized eavesdropping."
+                            content = "All API communications between the application and the backend are encrypted using Transport Layer Security (TLS/HTTPS). User profiles and metadata are stored on MongoDB databases protected by strict IAM policies. Agora call sessions use dynamic security token tokens generated by our backend node.js server for every single call to prevent unauthorized eavesdropping.\n\n• Chat Privacy: All direct messages are encrypted at rest using industry-standard AES-256-CBC algorithm. Nobody, including developers or database administrators, can access or read your chats.\n\n• Media Upload Security: Profile picture uploads are compressed locally (under 30KB) before transmission, and old avatars are immediately deleted from server disks to prevent unused media footprint.\n\n• Reverse Engineering Protection: Release builds are minified and obfuscated using Android's R8 optimizer, securing our source code from decompilers.",
+                            icon = Icons.Default.Security
                         )
                         
                         PolicySection(
                             title = "7. Data Deletion & Retention",
-                            content = "Under Play Store guidelines, we provide a clear in-app mechanism to delete your account. You can request permanent account deletion via Settings -> Delete Account. This request instantly submits a job to wipe your profile data, email records, friend lists, chat logs, and coin history from our active databases. Requests are logged in our compliance queue and completed within 14 days."
+                            content = "Under Play Store guidelines, we provide a clear in-app mechanism to delete your account. You can request permanent account deletion via Settings -> Delete Account. This request instantly submits a job to wipe your profile data, email records, friend lists, chat logs, and coin history from our active databases. Requests are logged in our compliance queue and completed within 14 days.",
+                            icon = Icons.Default.Delete
                         )
                         
                         PolicySection(
                             title = "8. Policy Updates & Contact",
-                            content = "We may update this policy periodically. If you have questions regarding data security, GDPR compliance, or account deletion, contact our Privacy Office at shriramasociate17@gmail.com."
+                            content = "We may update this policy periodically. If you have questions regarding data security, GDPR compliance, or account deletion, contact our Privacy Office at shriramasociate17@gmail.com.",
+                            icon = Icons.Default.Email
+                        )
+
+                        PolicySection(
+                            title = "9. Live Reporting & Moderation System",
+                            content = "To maintain a safe and respectful community, Talksy enforces a strict Zero-Tolerance Policy for harassment, nudity, and abuse. \n\n• Instant Shielding: When you report a user during a live call, the video session is instantly terminated, immediately shielding you from the reported user.\n\n• Backend Review & Actions: Our server automatically logs a formal abuse request against the reported user. If a user receives frequent or repetitive reports from different participants, our moderation team will investigate the logs and take appropriate action. This may include matching restrictions, temporary suspension, or permanent account termination to protect the community.",
+                            icon = Icons.Default.Security
                         )
                     }
                 }
@@ -577,9 +600,20 @@ fun ContactRow(
 }
 
 @Composable
-fun PolicySection(title: String, content: String) {
+fun PolicySection(title: String, content: String, icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
     Column(modifier = Modifier.padding(vertical = 12.dp)) {
-        Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ElectricViolet)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = ElectricViolet,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ElectricViolet)
+        }
         Spacer(modifier = Modifier.height(6.dp))
         Text(content, fontSize = 14.sp, color = getThemeTextColor(), lineHeight = 20.sp)
     }

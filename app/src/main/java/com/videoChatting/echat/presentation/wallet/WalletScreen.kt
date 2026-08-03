@@ -47,7 +47,53 @@ fun WalletScreen(
     val paymentMessage by viewModel.paymentMessage.collectAsState()
     val paymentUrl by viewModel.paymentUrl.collectAsState()
 
-    // If we have a payment URL, show the WebView screen
+    val sdkPayload by viewModel.sdkPayload.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(sdkPayload) {
+        sdkPayload?.let { payload ->
+            val activity = context as? android.app.Activity
+            if (activity != null) {
+                RazorpayPaymentResultHelper.onPaymentSuccess = { _, _ ->
+                    viewModel.onPaymentComplete(true)
+                    RazorpayPaymentResultHelper.clear()
+                }
+                RazorpayPaymentResultHelper.onPaymentError = { _, _, _ ->
+                    viewModel.onPaymentComplete(false)
+                    RazorpayPaymentResultHelper.clear()
+                }
+
+                try {
+                    com.razorpay.Checkout.preload(context.applicationContext)
+                    val checkout = com.razorpay.Checkout()
+                    val keyId = payload["key"] as? String
+                    if (keyId != null) {
+                        checkout.setKeyID(keyId)
+                    }
+
+                    val options = org.json.JSONObject()
+                    for (entry in payload.entries) {
+                        val key = entry.key
+                        val value = entry.value
+                        if (value is Map<*, *>) {
+                            options.put(key, org.json.JSONObject(value))
+                        } else {
+                            options.put(key, value)
+                        }
+                    }
+
+                    checkout.open(activity, options)
+                } catch (e: Exception) {
+                    viewModel.onPaymentComplete(false)
+                    RazorpayPaymentResultHelper.clear()
+                }
+            } else {
+                viewModel.dismissRazorpayCheckout()
+            }
+        }
+    }
+
+    // Keep WebView as fallback if paymentUrl is somehow loaded
     if (paymentUrl != null) {
         PaymentWebViewScreen(
             paymentUrl = paymentUrl!!,

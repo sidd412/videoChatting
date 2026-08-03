@@ -63,6 +63,9 @@ class WalletViewModel @Inject constructor(
     private val _paymentUrl = MutableStateFlow<String?>(null)
     val paymentUrl: StateFlow<String?> = _paymentUrl
 
+    private val _sdkPayload = MutableStateFlow<Map<String, Any>?>(null)
+    val sdkPayload: StateFlow<Map<String, Any>?> = _sdkPayload
+
     // Keep track of the current order ID to verify it later
     private var currentOrderId: String? = null
 
@@ -84,9 +87,8 @@ class WalletViewModel @Inject constructor(
 
     fun fetchLatestProfile() {
         viewModelScope.launch {
-            val userId = sessionManager.getUserProfile()?.userId ?: return@launch
             try {
-                val response = apiService.getUserProfile(userId)
+                val response = apiService.getUserProfile(sessionManager.getUserProfile()?.userId ?: "")
                 if (response.isSuccessful && response.body() != null) {
                     val profile = response.body()!!.profile
                     _currentCoins.value = profile.coinsBalance
@@ -118,18 +120,19 @@ class WalletViewModel @Inject constructor(
                 
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
-                    val link = body.paymentLink
                     currentOrderId = body.orderId
+                    val payload = body.sdkPayload
                     
-                    if (!link.isNullOrBlank()) {
+                    if (payload != null && payload.isNotEmpty()) {
                         _paymentMessage.value = ""
-                        _paymentUrl.value = link
+                        _sdkPayload.value = payload
                     } else {
-                        _paymentMessage.value = "No payment link received"
+                        _paymentMessage.value = "No payment options received"
                         _isProcessingPayment.value = false
                     }
                 } else {
-                    _paymentMessage.value = "Failed to create order"
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    _paymentMessage.value = "Failed to create order: $errorBody"
                     _isProcessingPayment.value = false
                 }
             } catch (e: Exception) {
@@ -139,7 +142,13 @@ class WalletViewModel @Inject constructor(
         }
     }
 
+    fun dismissRazorpayCheckout() {
+        _sdkPayload.value = null
+        _isProcessingPayment.value = false
+    }
+
     fun onPaymentComplete(success: Boolean) {
+        _sdkPayload.value = null
         _paymentUrl.value = null
         if (success && currentOrderId != null) {
             _paymentMessage.value = "Verifying payment..."

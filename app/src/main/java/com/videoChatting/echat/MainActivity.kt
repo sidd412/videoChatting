@@ -21,9 +21,12 @@ import com.videoChatting.echat.presentation.navigation.AppNavigation
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.razorpay.PaymentResultWithDataListener
+import com.razorpay.PaymentData
+import com.videoChatting.echat.presentation.wallet.RazorpayPaymentResultHelper
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -68,5 +71,13 @@ class MainActivity : ComponentActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
+
+    override fun onPaymentSuccess(razorpayPaymentId: String?, paymentData: PaymentData?) {
+        RazorpayPaymentResultHelper.onPaymentSuccess?.invoke(razorpayPaymentId, paymentData)
+    }
+
+    override fun onPaymentError(code: Int, response: String?, paymentData: PaymentData?) {
+        RazorpayPaymentResultHelper.onPaymentError?.invoke(code, response, paymentData)
     }
 }

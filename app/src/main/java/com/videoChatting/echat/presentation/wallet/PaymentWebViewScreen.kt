@@ -49,27 +49,46 @@ fun PaymentWebViewScreen(
                         settings.domStorageEnabled = true
                         settings.loadWithOverviewMode = true
                         settings.useWideViewPort = true
+                        // Set standard Chrome User Agent to prevent bot-detection captchas
+                        settings.userAgentString = "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36"
+                        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
 
                         webViewClient = object : WebViewClient() {
+                            private fun checkPaymentStatus(url: String?) {
+                                url?.let {
+                                    if (it.contains("sandbox.juspay.in/end") || 
+                                        it.contains("status=CHARGED") || 
+                                        it.contains("payment-complete") ||
+                                        it.contains("payment_link_status=paid") ||
+                                        (it.contains("razorpay.com") && it.contains("status=paid"))) {
+                                        onPaymentComplete(true)
+                                    } else if (it.contains("status=AUTHENTICATION_FAILED") || 
+                                               it.contains("status=AUTHORIZATION_FAILED") ||
+                                               it.contains("status=JUSPAY_DECLINED") ||
+                                               it.contains("payment_link_status=cancelled") ||
+                                               it.contains("payment_link_status=expired") ||
+                                               (it.contains("razorpay.com") && (it.contains("status=cancelled") || it.contains("status=expired")))) {
+                                        onPaymentComplete(false)
+                                    }
+                                }
+                            }
+
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                 super.onPageStarted(view, url, favicon)
                                 isLoading = true
+                                checkPaymentStatus(url)
                             }
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 super.onPageFinished(view, url)
                                 isLoading = false
-                                
-                                // Check if payment is complete (Juspay redirects to return_url)
-                                url?.let {
-                                    if (it.contains("sandbox.juspay.in/end") || it.contains("status=CHARGED")) {
-                                        onPaymentComplete(true)
-                                    } else if (it.contains("status=AUTHENTICATION_FAILED") || 
-                                               it.contains("status=AUTHORIZATION_FAILED") ||
-                                               it.contains("status=JUSPAY_DECLINED")) {
-                                        onPaymentComplete(false)
-                                    }
-                                }
+                                checkPaymentStatus(url)
+                            }
+
+                            @Deprecated("Deprecated in Java")
+                            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                                checkPaymentStatus(url)
+                                return super.shouldOverrideUrlLoading(view, url)
                             }
                         }
                         loadUrl(paymentUrl)

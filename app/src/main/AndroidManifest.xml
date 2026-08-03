@@ -50,6 +50,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.razorpay.CheckoutActivity"
+            android:theme="@style/Theme.EChat.Razorpay"
+            android:exported="false"
+            tools:replace="android:theme,android:exported">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <data android:scheme="io.rzp" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

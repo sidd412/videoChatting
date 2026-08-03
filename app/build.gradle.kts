@@ -103,7 +103,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     
-    // Juspay - managed by hypersdk.plugin, no direct implementation needed
+    // Razorpay Checkout SDK
+    implementation("com.razorpay:checkout:1.6.36")
     
     // Hilt
     implementation(libs.hilt.android)

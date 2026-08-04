@@ -5,8 +5,8 @@ object Constants {
     // Jab local par test karna ho toh is IP ka use karein
     private const val LOCAL_IP = "192.168.31.117"
     
-    // Server URLs (Live Render Server)
-    const val SOCKET_URL = "https://echat-backend-uj78.onrender.com"
+    // Server URLs (Live Google Cloud Run Server)
+    const val SOCKET_URL = "https://echat-backend-git-1020177538461.asia-south1.run.app"
     const val BASE_URL = "$SOCKET_URL/api/"
 
     // Third-party SDK Keys

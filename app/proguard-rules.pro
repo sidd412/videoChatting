@@ -61,3 +61,14 @@
 # ----------------------------------------------------
 -keep class dagger.hilt.** { *; }
 -dontwarn dagger.hilt.**
+
+# ----------------------------------------------------
+# Razorpay / Google Pay (NBU Paisa) Rules
+# ----------------------------------------------------
+-keepclassmembers class * {
+    @com.razorpay.Keep public *;
+}
+-keep class com.razorpay.** {*;}
+-dontwarn com.razorpay.**
+-dontwarn com.google.android.apps.nbu.paisa.inapp.client.api.**
+-dontwarn proguard.annotation.**

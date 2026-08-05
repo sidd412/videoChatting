@@ -109,6 +109,10 @@ class WalletViewModel @Inject constructor(
         }
     }
 
+    fun isGuestUser(): Boolean {
+        return sessionManager.getUserProfile()?.userId?.startsWith("guest_") == true
+    }
+
     fun initiatePayment(pack: CoinPack) {
         viewModelScope.launch {
             _isProcessingPayment.value = true

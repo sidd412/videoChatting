@@ -195,6 +195,34 @@ fun AuthScreen(
                     Text("Sign in with Google", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Continue with Guest Button
+            Button(
+                onClick = {
+                    if (consentChecked) {
+                        viewModel.loginAsGuest("Guest User")
+                    } else {
+                        Toast.makeText(context, "Please agree to Terms and Privacy Policy first", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ElectricIndigo,
+                    contentColor = Color.White
+                ),
+                enabled = consentChecked && state !is AuthState.Loading
+            ) {
+                if (state is AuthState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Login as Guest", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }

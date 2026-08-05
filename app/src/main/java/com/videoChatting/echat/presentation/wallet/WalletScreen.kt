@@ -50,6 +50,9 @@ fun WalletScreen(
     val sdkPayload by viewModel.sdkPayload.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    var showGuestWarning by remember { mutableStateOf(false) }
+    var selectedPackForGuest by remember { mutableStateOf<CoinPack?>(null) }
+
     LaunchedEffect(sdkPayload) {
         sdkPayload?.let { payload ->
             val activity = context as? android.app.Activity
@@ -189,11 +192,86 @@ fun WalletScreen(
                     CoinPackItem(
                         pack = pack,
                         isLoading = isProcessingPayment,
-                        onClick = { viewModel.initiatePayment(pack) }
+                        onClick = {
+                            if (viewModel.isGuestUser()) {
+                                selectedPackForGuest = pack
+                                showGuestWarning = true
+                            } else {
+                                viewModel.initiatePayment(pack)
+                            }
+                        }
                     )
                 }
             }
         }
+    }
+
+    if (showGuestWarning && selectedPackForGuest != null) {
+        var isChecked by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = {
+                showGuestWarning = false
+                selectedPackForGuest = null
+            },
+            title = {
+                Text(
+                    text = "Temporary Guest Account Warning",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "You are currently logged in as a Guest. Guest accounts are temporary. If you logout, delete the app, or clear your phone's data, your purchased coins will be permanently lost.\n\nWe highly recommend signing in with Google to secure your balance.",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { isChecked = !isChecked }
+                    ) {
+                        Checkbox(
+                            checked = isChecked,
+                            onCheckedChange = { isChecked = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "I understand the risk and want to proceed",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showGuestWarning = false
+                        selectedPackForGuest?.let { viewModel.initiatePayment(it) }
+                        selectedPackForGuest = null
+                    },
+                    enabled = isChecked,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ElectricIndigo,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Proceed Payment")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showGuestWarning = false
+                        selectedPackForGuest = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

@@ -57,6 +57,18 @@
 -dontwarn com.google.firebase.**
 
 # ----------------------------------------------------
+# Google Sign-In / Play Services Auth Rules
+# ----------------------------------------------------
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+-keep class com.google.android.gms.common.api.** { *; }
+# Keep string resources (default_web_client_id etc.) from being stripped
+-keepclassmembers class **.R$string {
+    public static <fields>;
+}
+
+# ----------------------------------------------------
 # Dagger Hilt Rules
 # ----------------------------------------------------
 -keep class dagger.hilt.** { *; }

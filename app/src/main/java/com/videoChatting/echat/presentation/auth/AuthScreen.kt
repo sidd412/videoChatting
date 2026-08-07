@@ -56,17 +56,11 @@ fun AuthScreen(
         }
     }
 
-    // Statically reference client ID to prevent resource shrinking (R8) from stripping it, with a solid fallback
-    val webClientId = remember {
-        try {
-            context.getString(com.videoChatting.echat.R.string.default_web_client_id)
-        } catch (e: Exception) {
-            "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com"
-        }
-    }
+    // Hardcoded Web Client ID (type 3 - server client) to avoid R8 resource stripping in release builds
+    val webClientId = "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com"
 
     // Google Sign-In settings
-    val gso = remember(webClientId) {
+    val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestIdToken(webClientId)

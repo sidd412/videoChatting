@@ -104,11 +104,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "1020177538461-fvtfo79oljnmpkbs5u63nn9g028sf7g6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "47d213485063ef4d4b35b96c66d4dc0267351d13"
+          }
+        },
+        {
           "client_id": "1020177538461-j0c2af63a6qiqhrm84grd4fo1kos9kn2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.videoChatting.echat",
             "certificate_hash": "b9a234bdc7e81f7c98e715ae7b29e4a4013ef3cb"
+          }
+        },
+        {
+          "client_id": "1020177538461-kmlt9k99jlnq5svi3sitna30lr37ksio.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "4358fb24b12637e1b775b562f3384a17528d152a"
           }
         },
         {

@@ -766,106 +766,118 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // Single Clean Master Control Bar
+                    // Single Clean Master Control Bar with Elevated Center Hero Next Button
                     Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(28.dp))
+                            .clip(RoundedCornerShape(32.dp))
                             .background(Color(0x880F172A))
-                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(28.dp))
-                            .padding(horizontal = 16.dp, vertical = 7.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(32.dp))
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Mute Audio Button
+                        // 1. Mic Audio Toggle
                         Box(
                             modifier = Modifier
-                                .size(38.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .background(if (isMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
                                 .border(BorderStroke(1.dp, if (isMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
-                            .clickable {
-                                isMuted = !isMuted
-                                rtcEngine?.muteLocalAudioStream(isMuted)
-                            },
+                                .clickable {
+                                    isMuted = !isMuted
+                                    rtcEngine?.muteLocalAudioStream(isMuted)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, 
                                 contentDescription = "Mute", 
                                 tint = Color.White,
-                                modifier = Modifier.size(19.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
 
-                        // Gift Button (Only during active match)
-                        if (state is DiscoveryState.Matched) {
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF261C4E))
-                                    .border(1.2.dp, Color(0xFFFFD700), CircleShape)
-                                    .clickable { showGiftBottomSheet = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("🎁", fontSize = 18.sp)
-                            }
-                        }
-                        
-                        // Mute Video Button
+                        // 2. Camera Video Toggle
                         Box(
                             modifier = Modifier
-                                .size(38.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .background(if (isVideoMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
                                 .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
-                            .clickable {
-                                isVideoMuted = !isVideoMuted
-                                rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                            },
+                                .clickable {
+                                    isVideoMuted = !isVideoMuted
+                                    rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, 
                                 contentDescription = "Video", 
                                 tint = Color.White,
-                                modifier = Modifier.size(19.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
 
-                        // 😃 Emoji Reaction Picker Button (Only during active match)
+                        // 3. CENTER HERO NEXT BUTTON (Slightly larger, glowing gradient & elevated)
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (state is DiscoveryState.Matched)
+                                        Brush.linearGradient(listOf(ElectricIndigo, Color(0xFF9333EA)))
+                                    else
+                                        Brush.linearGradient(listOf(Color(0x33FFFFFF), Color(0x22FFFFFF))),
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    BorderStroke(
+                                        1.5.dp, 
+                                        if (state is DiscoveryState.Matched) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.2f)
+                                    ), 
+                                    CircleShape
+                                )
+                                .clickable(enabled = state is DiscoveryState.Matched) {
+                                    viewModel.nextPerson()
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SkipNext,
+                                contentDescription = "Next Person",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        // 4. Gift Button (Only during active match)
                         if (state is DiscoveryState.Matched) {
                             Box(
                                 modifier = Modifier
-                                    .size(38.dp)
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF261C4E))
+                                    .border(1.2.dp, Color(0xFFFFD700), CircleShape)
+                                    .clickable { showGiftBottomSheet = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("🎁", fontSize = 17.sp)
+                            }
+                        }
+
+                        // 5. 😃 Emoji Reaction Picker Button (Only during active match)
+                        if (state is DiscoveryState.Matched) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
                                     .clip(CircleShape)
                                     .background(if (showEmojiPicker) Color(0x669333EA) else Color(0x33FFFFFF), shape = CircleShape)
                                     .border(BorderStroke(1.dp, if (showEmojiPicker) Color(0xFFFFD700) else Color.White.copy(alpha = 0.2f)), CircleShape)
                                     .clickable { showEmojiPicker = !showEmojiPicker },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("😃", fontSize = 18.sp)
+                                Text("😃", fontSize = 17.sp)
                             }
-                        }
-                        
-                        // Next Person Button
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(if (state is DiscoveryState.Matched) Color(0x33FFFFFF) else Color(0x11FFFFFF), shape = CircleShape)
-                                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), CircleShape)
-                            .clickable(enabled = state is DiscoveryState.Matched) {
-                                viewModel.nextPerson()
-                            },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SkipNext,
-                                contentDescription = "Next Person",
-                                tint = if (state is DiscoveryState.Matched) Color.White else Color.White.copy(alpha = 0.4f),
-                                modifier = Modifier.size(19.dp)
-                            )
                         }
                     }
                 }

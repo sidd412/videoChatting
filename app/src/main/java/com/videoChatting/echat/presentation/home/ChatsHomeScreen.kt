@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -84,13 +84,6 @@ fun ChatsHomeScreen(
                     title = { Text("Talksy", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                     actions = {
                         val currentCoins by viewModel.currentCoins.collectAsState()
-                        IconButton(onClick = { navController.navigate("invite_and_contacts") }) {
-                            Icon(
-                                imageVector = Icons.Default.PersonAdd,
-                                contentDescription = "Invite Friends",
-                                tint = ElectricIndigo
-                            )
-                        }
                         TextButton(onClick = { navController.navigate("wallet") }) {
                             Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
                             Spacer(modifier = Modifier.width(4.dp))
@@ -158,12 +151,38 @@ fun ChatsHomeScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToDiscovery,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "New Chat (Omegle)")
+                // 1. Top FAB: Invite & Sync Phone Contacts
+                SmallFloatingActionButton(
+                    onClick = { navController.navigate("invite_and_contacts") },
+                    containerColor = Color(0xFF261C4E),
+                    contentColor = Color(0xFF38BDF8),
+                    shape = CircleShape,
+                    modifier = Modifier.border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.4f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PersonAdd,
+                        contentDescription = "Invite Friends & Contacts",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                // 2. Main FAB: Discover / Live Matching (Matching bottom nav bar Explore icon)
+                FloatingActionButton(
+                    onClick = onNavigateToDiscovery,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Explore,
+                        contentDescription = "Discover",
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             }
         }
     ) { paddingValues ->

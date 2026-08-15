@@ -312,14 +312,29 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         ) {
                             if (remoteSurfaceView != null) {
                                 AndroidView(
-                                    factory = { 
-                                        FrameLayout(context).apply { 
-                                            val view = remoteSurfaceView
-                                            if (view != null) {
+                                    factory = { ctx ->
+                                        FrameLayout(ctx).apply {
+                                            layoutParams = android.view.ViewGroup.LayoutParams(
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                            )
+                                        }
+                                    },
+                                    update = { container ->
+                                        val view = remoteSurfaceView
+                                        if (view != null) {
+                                            if (view.parent !== container) {
                                                 (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                                container.removeAllViews()
+                                                view.layoutParams = FrameLayout.LayoutParams(
+                                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                                )
+                                                container.addView(view)
                                             }
-                                        } 
+                                        } else {
+                                            container.removeAllViews()
+                                        }
                                     },
                                     modifier = Modifier.fillMaxSize()
                                 )
@@ -339,14 +354,29 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         ) {
                             if (localSurfaceView != null && !isVideoMuted) {
                                 AndroidView(
-                                    factory = { 
-                                        FrameLayout(context).apply { 
-                                            val view = localSurfaceView
-                                            if (view != null) {
+                                    factory = { ctx ->
+                                        FrameLayout(ctx).apply {
+                                            layoutParams = android.view.ViewGroup.LayoutParams(
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                            )
+                                        }
+                                    },
+                                    update = { container ->
+                                        val view = localSurfaceView
+                                        if (view != null) {
+                                            if (view.parent !== container) {
                                                 (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                                container.removeAllViews()
+                                                view.layoutParams = FrameLayout.LayoutParams(
+                                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                                )
+                                                container.addView(view)
                                             }
-                                        } 
+                                        } else {
+                                            container.removeAllViews()
+                                        }
                                     },
                                     modifier = Modifier.fillMaxSize()
                                 )
@@ -367,19 +397,34 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
                 } else {
-                    // MODE 2: FULLSCREEN WITH FLOATING PiP (WhatsApp / FaceTime style)
+                    // MODE 2: FULLSCREEN WITH SLEEK CIRCULAR PiP (WhatsApp / FaceTime style)
                     // Fullscreen Remote Video
                     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
                         if (remoteSurfaceView != null) {
                             AndroidView(
-                                factory = { 
-                                    FrameLayout(context).apply { 
-                                        val view = remoteSurfaceView
-                                        if (view != null) {
+                                factory = { ctx ->
+                                    FrameLayout(ctx).apply {
+                                        layoutParams = android.view.ViewGroup.LayoutParams(
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                        )
+                                    }
+                                },
+                                update = { container ->
+                                    val view = remoteSurfaceView
+                                    if (view != null) {
+                                        if (view.parent !== container) {
                                             (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                            addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                            container.removeAllViews()
+                                            view.layoutParams = FrameLayout.LayoutParams(
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                            )
+                                            container.addView(view)
                                         }
-                                    } 
+                                    } else {
+                                        container.removeAllViews()
+                                    }
                                 },
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -388,39 +433,54 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // Floating Local Video Card (PiP) - Compact & Docked at Bottom Start
+                    // Floating Local Video: Sleek Circular PiP Bubble (Top Start below name tag)
                     if (localSurfaceView != null && !isVideoMuted) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .padding(start = 16.dp, bottom = 115.dp)
-                                .size(width = 85.dp, height = 125.dp)
-                                .clip(RoundedCornerShape(14.dp))
+                                .align(Alignment.TopStart)
+                                .padding(start = 16.dp, top = 68.dp)
+                                .size(78.dp)
+                                .clip(CircleShape)
                                 .background(Color.Black)
-                                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(14.dp))
+                                .border(2.dp, Color(0xFF38BDF8), CircleShape)
                                 .clickable { isFullscreenMode = false }
                         ) {
                             AndroidView(
-                                factory = { 
-                                    FrameLayout(context).apply { 
-                                        val view = localSurfaceView
-                                        if (view != null) {
+                                factory = { ctx ->
+                                    FrameLayout(ctx).apply {
+                                        layoutParams = android.view.ViewGroup.LayoutParams(
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                        )
+                                    }
+                                },
+                                update = { container ->
+                                    val view = localSurfaceView
+                                    if (view != null) {
+                                        if (view.parent !== container) {
                                             (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                            addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                            container.removeAllViews()
+                                            view.layoutParams = FrameLayout.LayoutParams(
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                            )
+                                            container.addView(view)
                                         }
-                                    } 
+                                    } else {
+                                        container.removeAllViews()
+                                    }
                                 },
                                 modifier = Modifier.fillMaxSize()
                             )
                             Box(
                                 modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(4.dp)
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 2.dp)
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(Color(0x88000000))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                                    .padding(horizontal = 4.dp, vertical = 1.dp)
                             ) {
-                                Text("You", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text("You", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

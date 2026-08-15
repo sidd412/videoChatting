@@ -123,12 +123,7 @@ fun AuthScreen(
                     // User dismissed / cancelled dialog - do nothing
                 }
                 GoogleSignInStatusCodes.DEVELOPER_ERROR -> {
-                    val currentSha1 = getAppRuntimeSha1(context)
-                    Toast.makeText(
-                        context,
-                        "Developer Error (10). App SHA-1 is:\n$currentSha1",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_SHORT).show()
                 }
                 else -> {
                     Toast.makeText(context, "Sign-in error: ${e.statusCode} (${e.localizedMessage})", Toast.LENGTH_SHORT).show()

@@ -80,7 +80,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     var showGiftBottomSheet by remember { mutableStateOf(false) }
     var showDailyRewardsSheet by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
-    var isFullscreenMode by remember { mutableStateOf(false) }
+    var isFullscreenMode by remember { mutableStateOf(true) }
     var isBeautyOn by remember { mutableStateOf(false) }
     var callSeconds by remember { mutableIntStateOf(0) }
 

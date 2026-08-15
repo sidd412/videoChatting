@@ -2,7 +2,7 @@ package com.videoChatting.echat.presentation.discovery
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.view.SurfaceView
+import android.view.TextureView
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -85,8 +85,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     val currentCoins by viewModel.currentCoins.collectAsState()
 
     var rtcEngine by remember { mutableStateOf<RtcEngine?>(null) }
-    var localSurfaceView by remember { mutableStateOf<SurfaceView?>(null) }
-    var remoteSurfaceView by remember { mutableStateOf<SurfaceView?>(null) }
+    var localTextureView by remember { mutableStateOf<TextureView?>(null) }
+    var remoteTextureView by remember { mutableStateOf<TextureView?>(null) }
     var remoteUid by remember { mutableStateOf(0) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -131,7 +131,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 override fun onUserOffline(uid: Int, reason: Int) {
                     if (remoteUid == uid) {
                         remoteUid = 0
-                        remoteSurfaceView = null
+                        remoteTextureView = null
                         viewModel.nextPerson()
                     }
                 }
@@ -140,8 +140,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             rtcEngine = engine
             engine.enableVideo()
 
-            localSurfaceView = SurfaceView(context).apply { setZOrderMediaOverlay(true) }
-            engine.setupLocalVideo(VideoCanvas(localSurfaceView, VideoCanvas.RENDER_MODE_HIDDEN, 0))
+            localTextureView = TextureView(context)
+            engine.setupLocalVideo(VideoCanvas(localTextureView, VideoCanvas.RENDER_MODE_HIDDEN, 0))
             engine.startPreview()
         } catch (e: Exception) {
             Toast.makeText(context, "Error init Agora", Toast.LENGTH_SHORT).show()
@@ -170,14 +170,14 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             agoraStatus = ""
             // Force reset to guarantee LaunchedEffect triggers on next match
             remoteUid = 0
-            remoteSurfaceView = null
+            remoteTextureView = null
         }
     }
 
     LaunchedEffect(remoteUid) {
         if (remoteUid != 0 && rtcEngine != null) {
-            remoteSurfaceView = SurfaceView(context)
-            rtcEngine?.setupRemoteVideo(VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_HIDDEN, remoteUid))
+            remoteTextureView = TextureView(context)
+            rtcEngine?.setupRemoteVideo(VideoCanvas(remoteTextureView, VideoCanvas.RENDER_MODE_HIDDEN, remoteUid))
         }
     }
 
@@ -301,16 +301,16 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             // Dynamic Video Layout: Supports both Split Screen and Fullscreen PiP
             Box(modifier = Modifier.fillMaxSize()) {
                 if (!isFullscreenMode) {
-                    // MODE 1: SPLIT SCREEN (50% Remote / 50% Local)
+                    // MODE 1: CLEAN 50-50 SPLIT SCREEN
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Top Half: Remote Video
+                        // Top Half: Remote Video (Full rectangular view)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .background(Color.Black)
                         ) {
-                            if (remoteSurfaceView != null) {
+                            if (remoteTextureView != null) {
                                 AndroidView(
                                     factory = { ctx ->
                                         FrameLayout(ctx).apply {
@@ -321,7 +321,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                         }
                                     },
                                     update = { container ->
-                                        val view = remoteSurfaceView
+                                        val view = remoteTextureView
                                         if (view != null) {
                                             if (view.parent !== container) {
                                                 (view.parent as? android.view.ViewGroup)?.removeView(view)
@@ -345,14 +345,14 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
 
                         HorizontalDivider(color = cardBorder, thickness = 1.dp)
 
-                        // Bottom Half: Local Video
+                        // Bottom Half: Local Video (Full rectangular view)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .background(Color.Black)
                         ) {
-                            if (localSurfaceView != null && !isVideoMuted) {
+                            if (localTextureView != null && !isVideoMuted) {
                                 AndroidView(
                                     factory = { ctx ->
                                         FrameLayout(ctx).apply {
@@ -363,7 +363,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                         }
                                     },
                                     update = { container ->
-                                        val view = localSurfaceView
+                                        val view = localTextureView
                                         if (view != null) {
                                             if (view.parent !== container) {
                                                 (view.parent as? android.view.ViewGroup)?.removeView(view)
@@ -397,10 +397,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
                 } else {
-                    // MODE 2: FULLSCREEN WITH SLEEK CIRCULAR PiP (WhatsApp / FaceTime style)
+                    // MODE 2: FULLSCREEN WITH PIXEL-PERFECT CIRCULAR PiP (WhatsApp / FaceTime style)
                     // Fullscreen Remote Video
                     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                        if (remoteSurfaceView != null) {
+                        if (remoteTextureView != null) {
                             AndroidView(
                                 factory = { ctx ->
                                     FrameLayout(ctx).apply {
@@ -411,7 +411,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                     }
                                 },
                                 update = { container ->
-                                    val view = remoteSurfaceView
+                                    val view = remoteTextureView
                                     if (view != null) {
                                         if (view.parent !== container) {
                                             (view.parent as? android.view.ViewGroup)?.removeView(view)
@@ -433,8 +433,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // Floating Local Video: Sleek Circular PiP Bubble (Top Start below name tag)
-                    if (localSurfaceView != null && !isVideoMuted) {
+                    // Floating Local Video: Pixel-Perfect Circular PiP Bubble (Top-Start below partner tag)
+                    if (localTextureView != null && !isVideoMuted) {
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
@@ -452,23 +452,11 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT
                                         )
-                                        clipToOutline = true
-                                        outlineProvider = object : android.view.ViewOutlineProvider() {
-                                            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
-                                                outline.setOval(0, 0, view.width, view.height)
-                                            }
-                                        }
                                     }
                                 },
                                 update = { container ->
-                                    val view = localSurfaceView
+                                    val view = localTextureView
                                     if (view != null) {
-                                        view.clipToOutline = true
-                                        view.outlineProvider = object : android.view.ViewOutlineProvider() {
-                                            override fun getOutline(v: android.view.View, outline: android.graphics.Outline) {
-                                                outline.setOval(0, 0, v.width, v.height)
-                                            }
-                                        }
                                         if (view.parent !== container) {
                                             (view.parent as? android.view.ViewGroup)?.removeView(view)
                                             container.removeAllViews()

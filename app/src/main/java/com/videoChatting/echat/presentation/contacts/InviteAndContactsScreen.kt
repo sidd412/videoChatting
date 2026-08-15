@@ -778,8 +778,9 @@ private fun RegisteredContactsTab(
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column {
+                                val friendName = user?.name ?: contact.name
                                 Text(
-                                    text = user?.name ?: contact.name,
+                                    text = "$friendName (${contact.phoneNumber})",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,

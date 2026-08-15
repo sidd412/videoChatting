@@ -23,6 +23,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
+import com.videoChatting.echat.presentation.theme.ElectricIndigo
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavController, targetUserId: String, userName: String, viewModel: ChatViewModel = hiltViewModel()) {
@@ -49,15 +55,63 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
     
     val messages by viewModel.messages.collectAsState()
     val onlineStatus by viewModel.onlineStatus.collectAsState()
+    val partnerProfile by viewModel.partnerProfile.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { 
-                    Column {
-                        Text(userName, fontWeight = FontWeight.Bold)
-                        if (onlineStatus.isNotEmpty()) {
-                            Text(onlineStatus, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Partner Profile Picture
+                        val avatar = partnerProfile?.avatar
+                        if (!avatar.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = avatar,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(ElectricIndigo),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = userName.take(1).uppercase(),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Column {
+                            val contactNum = partnerProfile?.contactNumber
+                            val displayName = if (!contactNum.isNullOrBlank()) "$userName ($contactNum)" else userName
+                            Text(
+                                text = displayName,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (onlineStatus.isNotEmpty()) {
+                                Text(
+                                    text = "Online 🟢",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF00E676),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 },

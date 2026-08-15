@@ -28,6 +28,9 @@ class ChatViewModel @Inject constructor(
     private val _onlineStatus = MutableStateFlow<String>("")
     val onlineStatus: StateFlow<String> = _onlineStatus.asStateFlow()
 
+    private val _partnerProfile = MutableStateFlow<com.videoChatting.echat.data.remote.model.UserProfileDto?>(null)
+    val partnerProfile: StateFlow<com.videoChatting.echat.data.remote.model.UserProfileDto?> = _partnerProfile.asStateFlow()
+
     private var currentChatId: String = ""
     val currentUserId: String? = userRepository.getCurrentUserId()
 
@@ -62,7 +65,8 @@ class ChatViewModel @Inject constructor(
                 val response = apiService.getUserProfile(targetUserId)
                 if (response.isSuccessful && response.body() != null) {
                     val profile = response.body()!!.profile
-                    _onlineStatus.value = if (profile.isOnline) "Online" else "" // Can expand to format lastSeen later
+                    _partnerProfile.value = profile
+                    _onlineStatus.value = if (profile.isOnline) "Online" else ""
                 }
             } catch (e: Exception) {
                 // Ignore failure

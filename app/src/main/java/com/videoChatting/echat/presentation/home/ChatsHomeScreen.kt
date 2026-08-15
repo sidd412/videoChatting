@@ -61,7 +61,7 @@ fun ChatsHomeScreen(
     }
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
-    val filters = listOf("All", "Liked", "Friends", "Requests")
+    val filters = listOf("All", "Liked", "Contacts", "Requests")
 
     val pendingConsentCount by viewModel.pendingConsentCount.collectAsState()
 
@@ -69,7 +69,7 @@ fun ChatsHomeScreen(
         val matchesSearch = chat.name.contains(searchQuery, ignoreCase = true)
         val matchesFilter = when (selectedFilter) {
             "Liked" -> chat.isLiked || chat.categories.contains("liked")
-            "Friends" -> chat.categories.contains("friend") || chat.categories.contains("contacts") || chat.categories.contains("added")
+            "Contacts" -> chat.categories.contains("friend") || chat.categories.contains("contacts") || chat.categories.contains("added")
             "Requests" -> chat.categories.contains("consent") || chat.categories.contains("request")
             else -> true
         }

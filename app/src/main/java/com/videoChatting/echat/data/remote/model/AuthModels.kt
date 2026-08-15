@@ -68,6 +68,8 @@ data class UserProfileDto(
     @SerializedName("userId") val userId: String,
     @SerializedName("name") val name: String,
     @SerializedName("avatar") val avatar: String?,
+    @SerializedName("contactNumber") val contactNumber: String? = null,
+    @SerializedName("bio") val bio: String? = null,
     @SerializedName("isOnline") val isOnline: Boolean,
     @SerializedName("lastSeen") val lastSeen: Long,
     @SerializedName("coinsBalance") val coinsBalance: Int = 100

@@ -20,7 +20,6 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.SignInWithGoogleOption
 import com.videoChatting.echat.data.local.SessionManager
 import com.videoChatting.echat.presentation.theme.*
 import androidx.compose.foundation.text.ClickableText
@@ -65,12 +64,16 @@ fun AuthScreen(
     val handleGoogleSignIn: () -> Unit = {
         scope.launch {
             try {
-                // SignInWithGoogleOption always shows account picker - no "No credentials available" error
-                val signInWithGoogleOption = SignInWithGoogleOption.Builder(webClientId)
+                // filterByAuthorizedAccounts(false) = show all Google accounts on device
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .setAutoSelectEnabled(false)
+                    .setNonce(null)
                     .build()
 
                 val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(signInWithGoogleOption)
+                    .addCredentialOption(googleIdOption)
                     .build()
 
                 val result = credentialManager.getCredential(

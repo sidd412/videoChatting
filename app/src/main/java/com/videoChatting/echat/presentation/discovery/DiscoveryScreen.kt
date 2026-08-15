@@ -388,16 +388,16 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // Floating Local Video Card (PiP)
+                    // Floating Local Video Card (PiP) - Compact & Docked at Bottom Start
                     if (localSurfaceView != null && !isVideoMuted) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 80.dp, end = 16.dp)
-                                .size(width = 110.dp, height = 160.dp)
-                                .clip(RoundedCornerShape(16.dp))
+                                .align(Alignment.BottomStart)
+                                .padding(start = 16.dp, bottom = 115.dp)
+                                .size(width = 85.dp, height = 125.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(Color.Black)
-                                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+                                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(14.dp))
                                 .clickable { isFullscreenMode = false }
                         ) {
                             AndroidView(
@@ -415,12 +415,12 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
-                                    .padding(6.dp)
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(4.dp))
                                     .background(Color(0x88000000))
                                     .padding(horizontal = 4.dp, vertical = 2.dp)
                             ) {
-                                Text("You", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text("You", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -704,21 +704,28 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         
                         Spacer(modifier = Modifier.width(14.dp))
                         
-                        Button(
+                        // Circular Next Person Icon Button
+                        IconButton(
                             onClick = { viewModel.nextPerson() },
                             enabled = state is DiscoveryState.Matched,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ElectricIndigo,
-                                disabledContainerColor = cardBackground
-                            ),
-                            shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier.height(48.dp)
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (state is DiscoveryState.Matched) ElectricIndigo else cardBackground,
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    BorderStroke(1.dp, if (state is DiscoveryState.Matched) CyberCyan else cardBorder),
+                                    CircleShape
+                                )
                         ) {
-                            if (state is DiscoveryState.Matched) {
-                                Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = Color.White)
-                                Spacer(modifier = Modifier.width(6.dp))
-                            }
-                            Text(if (state is DiscoveryState.Matched) "Next" else "Searching...", fontWeight = FontWeight.Bold, color = Color.White)
+                            Icon(
+                                imageVector = Icons.Default.SkipNext,
+                                contentDescription = "Next Person",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }

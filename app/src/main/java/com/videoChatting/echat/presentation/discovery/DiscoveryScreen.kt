@@ -500,47 +500,45 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
 
                 // --- COMMON IN-CALL OVERLAYS & CONTROLS ---
 
-                // 1. Top-Center Live Call Duration Pill
-                if (state is DiscoveryState.Matched) {
-                    val mins = callSeconds / 60
-                    val secs = callSeconds % 60
-                    val timeStr = String.format("%02d:%02d", mins, secs)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 28.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0x880F172A))
-                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF00E676))
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Text(
-                                text = timeStr,
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                // 2. Top Header: Bonus Button + Coins Balance
+                // 1. Top Header Row: [ ⏱️ Timer ] + [ 🎡 Bonus ] + [ 🪙 Coins ]
                 val currentCoinsVal by viewModel.currentCoins.collectAsState()
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(end = 16.dp, top = 28.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // ⏱️ Live Call Duration Pill (Only during active match)
+                    if (state is DiscoveryState.Matched) {
+                        val mins = callSeconds / 60
+                        val secs = callSeconds % 60
+                        val timeStr = String.format("%02d:%02d", mins, secs)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0x880F172A))
+                                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF00E676))
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = timeStr,
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
                     // 🎡 Daily Rewards / Spin Button
                     Row(
                         modifier = Modifier
@@ -551,9 +549,9 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🎡", fontSize = 13.sp)
+                        Text("🎡", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(3.dp))
-                        Text("Bonus", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Bonus", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
 
                     // Coins Badge
@@ -569,14 +567,14 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             imageVector = Icons.Default.MonetizationOn,
                             contentDescription = "Coins",
                             tint = CoinGold,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
                             text = "$currentCoinsVal",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
                         )
                     }
                 }

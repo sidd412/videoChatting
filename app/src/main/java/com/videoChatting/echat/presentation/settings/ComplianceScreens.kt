@@ -1,10 +1,15 @@
 package com.videoChatting.echat.presentation.settings
 
 import android.widget.Toast
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -259,7 +264,22 @@ fun AboutUsScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Talksy", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold, color = getThemeTextColor())
+                @OptIn(ExperimentalFoundationApi::class)
+                Text(
+                    text = "Talksy",
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = getThemeTextColor(),
+                    modifier = Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            val sha1 = com.videoChatting.echat.presentation.auth.getAppRuntimeSha1(context)
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("App SHA-1", sha1))
+                            Toast.makeText(context, "App SHA-1 copied:\n$sha1", Toast.LENGTH_LONG).show()
+                        }
+                    )
+                )
                 Text("Version $versionName ($versionCode)", fontSize = 14.sp, color = getThemeSubTextColor())
                 Spacer(modifier = Modifier.height(32.dp))
                 

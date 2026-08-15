@@ -161,16 +161,7 @@ fun AuthScreen(
                 text = "Talksy",
                 fontSize = 48.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor,
-                modifier = Modifier.combinedClickable(
-                    onClick = {},
-                    onLongClick = {
-                        val sha1 = getAppRuntimeSha1(context)
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("App SHA-1", sha1))
-                        Toast.makeText(context, "App SHA-1 copied to clipboard:\n$sha1", Toast.LENGTH_LONG).show()
-                    }
-                )
+                color = textColor
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

@@ -28,7 +28,8 @@ class DiscoveryViewModel @Inject constructor(
     private val matchmakingRepository: MatchmakingRepository,
     private val userRepository: UserRepository,
     private val sessionManager: SessionManager,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val socketManager: com.videoChatting.echat.data.remote.SocketManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DiscoveryState>(DiscoveryState.Idle)
@@ -36,6 +37,12 @@ class DiscoveryViewModel @Inject constructor(
     
     private val _currentCoins = MutableStateFlow(sessionManager.getUserProfile()?.coinsBalance ?: 0)
     val currentCoins: StateFlow<Int> = _currentCoins.asStateFlow()
+
+    private val _activeGiftEvent = MutableStateFlow<com.videoChatting.echat.presentation.call.GiftReceivedEvent?>(null)
+    val activeGiftEvent: StateFlow<com.videoChatting.echat.presentation.call.GiftReceivedEvent?> = _activeGiftEvent.asStateFlow()
+
+    private val _floatingEmojis = MutableStateFlow<List<com.videoChatting.echat.presentation.call.FloatingEmojiItem>>(emptyList())
+    val floatingEmojis: StateFlow<List<com.videoChatting.echat.presentation.call.FloatingEmojiItem>> = _floatingEmojis.asStateFlow()
 
     private val currentUserId: String? = userRepository.getCurrentUserId()
 
@@ -70,6 +77,22 @@ class DiscoveryViewModel @Inject constructor(
                         matchmakingRepository.endActiveCall()
                     }
                 }
+            }
+        }
+
+        // Observe live Gift Events from partner
+        viewModelScope.launch {
+            socketManager.giftReceivedEvents.collect { giftEvent ->
+                _activeGiftEvent.value = giftEvent
+                val profile = sessionManager.getUserProfile()
+                _currentCoins.value = profile?.coinsBalance ?: 0
+            }
+        }
+
+        // Observe live Floating Reactions from partner
+        viewModelScope.launch {
+            socketManager.reactionReceivedEvents.collect { emoji ->
+                triggerLocalReaction(emoji)
             }
         }
     }
@@ -139,6 +162,41 @@ class DiscoveryViewModel @Inject constructor(
                 onError(e.localizedMessage ?: "Unknown error")
             }
         }
+    }
+
+    fun sendGift(partnerId: String, gift: com.videoChatting.echat.presentation.call.GiftItem) {
+        val currentCoinsVal = _currentCoins.value
+        if (currentCoinsVal >= gift.coinCost) {
+            _currentCoins.value = currentCoinsVal - gift.coinCost
+            sessionManager.updateCoins(_currentCoins.value)
+            socketManager.sendGift(partnerId, gift)
+
+            val profile = sessionManager.getUserProfile()
+            _activeGiftEvent.value = com.videoChatting.echat.presentation.call.GiftReceivedEvent(
+                senderId = profile?.userId ?: "me",
+                senderName = "You",
+                giftId = gift.id,
+                giftName = gift.name,
+                coins = gift.coinCost,
+                icon = gift.icon,
+                timestamp = System.currentTimeMillis()
+            )
+        }
+    }
+
+    fun sendReaction(partnerId: String, emoji: String) {
+        triggerLocalReaction(emoji)
+        socketManager.sendReaction(partnerId, emoji)
+    }
+
+    private fun triggerLocalReaction(emoji: String) {
+        val newParticles = (0..2).map {
+            com.videoChatting.echat.presentation.call.FloatingEmojiItem(
+                emoji = emoji,
+                startXPercent = kotlin.random.Random.nextFloat() * 0.8f - 0.4f
+            )
+        }
+        _floatingEmojis.value = (_floatingEmojis.value + newParticles).takeLast(15)
     }
 
     override fun onCleared() {

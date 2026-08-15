@@ -155,11 +155,11 @@ fun ChatsHomeScreen(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(19.dp)
             ) {
-                // 1. Top FAB: Invite & Sync Phone Contacts (Matching primary theme)
+                // 1. Top FAB: Invite & Sync Phone Contacts (Rounded rectangle FAB)
                 SmallFloatingActionButton(
                     onClick = { navController.navigate("invite_and_contacts") },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
+                    containerColor = Color(0xFF261C4E),
+                    contentColor = Color(0xFF38BDF8),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
@@ -169,11 +169,11 @@ fun ChatsHomeScreen(
                     )
                 }
 
-                // 2. Main FAB: Discover / Live Matching (Rounded rectangle standard FAB)
+                // 2. Main FAB: Discover / Live Matching (Matching same dark-purple background without border)
                 FloatingActionButton(
                     onClick = onNavigateToDiscovery,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
+                    containerColor = Color(0xFF261C4E),
+                    contentColor = Color(0xFF38BDF8),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(

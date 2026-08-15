@@ -212,40 +212,14 @@ fun AuthScreen(
                 )
             }
 
-            // Continue with Google Button
-            OutlinedButton(
+            // Continue with Google Button (Primary Sign In)
+            Button(
                 onClick = {
                     if (consentChecked) {
                         // Sign out first so user can choose account, then launch Google Sign-In intent
                         googleSignInClient.signOut().addOnCompleteListener {
                             googleSignInLauncher.launch(googleSignInClient.signInIntent)
                         }
-                    } else {
-                        Toast.makeText(context, "Please agree to Terms and Privacy Policy first", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
-                border = BorderStroke(1.dp, cardBorder),
-                enabled = consentChecked && state !is AuthState.Loading
-            ) {
-                if (state is AuthState.Loading) {
-                    CircularProgressIndicator(color = ElectricIndigo, modifier = Modifier.size(24.dp))
-                } else {
-                    Text("Sign in with Google", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Continue with Guest Button
-            Button(
-                onClick = {
-                    if (consentChecked) {
-                        viewModel.loginAsGuest("Guest User")
                     } else {
                         Toast.makeText(context, "Please agree to Terms and Privacy Policy first", Toast.LENGTH_SHORT).show()
                     }
@@ -263,7 +237,7 @@ fun AuthScreen(
                 if (state is AuthState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Login as Guest", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Sign in with Google", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

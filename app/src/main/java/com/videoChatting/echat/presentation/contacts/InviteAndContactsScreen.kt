@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -60,7 +61,7 @@ fun InviteAndContactsScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val actionMessage by viewModel.actionMessage.collectAsState()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Invite, 1: On Talksy, 2: Privacy & Redeem
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Invite, 1: On Talksy, 2: Privacy
     var redeemCodeInput by remember { mutableStateOf("") }
     var hasContactsPermission by remember {
         mutableStateOf(
@@ -163,47 +164,48 @@ fun InviteAndContactsScreen(
                 }
             )
 
-            // 2. Custom Modern 3-Tab Pill Switcher
+            // 2. Custom Clean 3-Tab Segmented Switcher (Pixel-Perfect Padding & Clear Labels)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(CyberMidnight)
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF16122E))
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
                     .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                listOf(
-                    "💰 Invite (${inviteContacts.size})",
-                    "👥 On Talksy (${registeredContacts.size})",
-                    "🛡️ Redeem & Privacy"
-                ).forEachIndexed { index, title ->
-                    val isSelected = selectedTab == index
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                if (isSelected) Brush.horizontalGradient(listOf(ElectricIndigo, ElectricViolet))
-                                else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
-                            )
-                            .clickable { selectedTab = index }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = title,
-                            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+                // Tab 0: Invite
+                TabPillButton(
+                    modifier = Modifier.weight(1f),
+                    title = "Invite",
+                    badgeCount = inviteContacts.size,
+                    isSelected = selectedTab == 0,
+                    onClick = { selectedTab = 0 }
+                )
+
+                // Tab 1: On Talksy
+                TabPillButton(
+                    modifier = Modifier.weight(1f),
+                    title = "Friends",
+                    badgeCount = registeredContacts.size,
+                    isSelected = selectedTab == 1,
+                    onClick = { selectedTab = 1 }
+                )
+
+                // Tab 2: Redeem & Privacy
+                TabPillButton(
+                    modifier = Modifier.weight(1f),
+                    title = "Privacy",
+                    badgeCount = null,
+                    isSelected = selectedTab == 2,
+                    onClick = { selectedTab = 2 }
+                )
             }
 
-            // 3. Permission Gate / Main Content
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 3. Main Tab Content / Permission Gate
             if (!hasContactsPermission && (selectedTab == 0 || selectedTab == 1)) {
                 ContactsPermissionPrompt(
                     onGrantPermission = {
@@ -245,6 +247,55 @@ fun InviteAndContactsScreen(
 }
 
 @Composable
+private fun TabPillButton(
+    modifier: Modifier = Modifier,
+    title: String,
+    badgeCount: Int?,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isSelected) Brush.horizontalGradient(listOf(ElectricIndigo, ElectricViolet))
+                else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+            )
+            .clickable { onClick() }
+            .padding(vertical = 9.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                fontSize = 13.sp
+            )
+            if (badgeCount != null && badgeCount > 0) {
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isSelected) Color.White.copy(alpha = 0.25f) else Color(0x33FFFFFF))
+                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        text = "$badgeCount",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ReferralHeroCard(
     referralCode: String,
     referralCount: Int,
@@ -256,7 +307,7 @@ private fun ReferralHeroCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -269,7 +320,7 @@ private fun ReferralHeroCard(
                     )
                 )
                 .border(BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f)), RoundedCornerShape(20.dp))
-                .padding(16.dp)
+                .padding(14.dp)
         ) {
             Column {
                 Row(
@@ -278,13 +329,13 @@ private fun ReferralHeroCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎁", fontSize = 20.sp)
+                        Text("🎁", fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Invite & Earn",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 15.sp
                         )
                     }
 
@@ -299,7 +350,7 @@ private fun ReferralHeroCard(
                             text = "+$bonusPerReferral 🪙 per Friend",
                             color = CoinGold,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
+                            fontSize = 11.sp
                         )
                     }
                 }
@@ -313,7 +364,7 @@ private fun ReferralHeroCard(
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0x66000000))
                         .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -321,19 +372,19 @@ private fun ReferralHeroCard(
                         Text(
                             text = "YOUR INVITE CODE",
                             color = Color.White.copy(alpha = 0.5f),
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = referralCode.ifEmpty { "LOADING..." },
                             color = Color(0xFF38BDF8),
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             letterSpacing = 1.sp
                         )
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Copy Button
                         Box(
                             modifier = Modifier
@@ -356,7 +407,7 @@ private fun ReferralHeroCard(
                             modifier = Modifier
                                 .size(34.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF25D366)) // WhatsApp Green
+                                .background(Color(0xFF25D366))
                                 .clickable { onShareCode() },
                             contentAlignment = Alignment.Center
                         ) {
@@ -370,21 +421,22 @@ private fun ReferralHeroCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Stats Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "$referralCount", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text(text = "Friends Joined", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                        Text(text = "$referralCount", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(text = "Friends Joined", color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
                     }
-                    Box(modifier = Modifier.width(1.dp).height(24.dp).background(Color.White.copy(alpha = 0.1f)))
+                    Box(modifier = Modifier.width(1.dp).height(20.dp).background(Color.White.copy(alpha = 0.1f)))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "$coinsEarned 🪙", color = CoinGold, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text(text = "Total Earned", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                        Text(text = "$coinsEarned 🪙", color = CoinGold, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(text = "Total Earned", color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
                     }
                 }
             }
@@ -485,10 +537,10 @@ private fun InviteContactsTab(
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = CyberMidnight,
-                unfocusedContainerColor = CyberMidnight,
+                focusedContainerColor = Color(0xFF16122E),
+                unfocusedContainerColor = Color(0xFF16122E),
                 focusedBorderColor = ElectricIndigo,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             )
@@ -528,38 +580,62 @@ private fun ContactInviteRow(
     contact: DeviceContact,
     onInvite: () -> Unit
 ) {
+    // Clean formatted name
+    val cleanName = remember(contact.name, contact.phoneNumber) {
+        val stripped = contact.name.trim().trim('"', '\'', '(', ')', '[', ']', '{', '}')
+        if (stripped.isBlank() || stripped.startsWith("+") || stripped.all { it.isDigit() || it == '+' || it == ' ' }) {
+            contact.phoneNumber
+        } else {
+            stripped
+        }
+    }
+
+    // Extract first letter or null
+    val initialLetter = remember(cleanName) {
+        cleanName.firstOrNull { it.isLetter() }?.uppercaseChar()?.toString()
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(CyberMidnight)
-            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+            .background(Color(0xFF16122E))
+            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(16.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-            // Avatar Initial
+            // Avatar Initial with gradient
             Box(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF261C4E)),
+                    .background(Brush.linearGradient(listOf(Color(0xFF2E1065), Color(0xFF1E1B4B)))),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = contact.name.take(1).uppercase(),
-                    color = Color(0xFF38BDF8),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+                if (initialLetter != null) {
+                    Text(
+                        text = initialLetter,
+                        color = Color(0xFF38BDF8),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color(0xFF38BDF8),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = contact.name,
+                    text = cleanName,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
@@ -574,14 +650,19 @@ private fun ContactInviteRow(
             }
         }
 
-        // Invite Button
-        Button(
-            onClick = onInvite,
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Sleek Gradient Invite Button
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(Brush.horizontalGradient(listOf(ElectricIndigo, Color(0xFF2563EB))))
+                .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                .clickable { onInvite() }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Text("Invite 50🪙", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text("Invite +50🪙", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
         }
     }
 }
@@ -613,10 +694,10 @@ private fun RegisteredContactsTab(
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = CyberMidnight,
-                unfocusedContainerColor = CyberMidnight,
+                focusedContainerColor = Color(0xFF16122E),
+                unfocusedContainerColor = Color(0xFF16122E),
                 focusedBorderColor = ElectricIndigo,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             )
@@ -660,7 +741,7 @@ private fun RegisteredContactsTab(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
-                            .background(CyberMidnight)
+                            .background(Color(0xFF16122E))
                             .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.2f), RoundedCornerShape(16.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -722,7 +803,7 @@ private fun RegisteredContactsTab(
                                 .background(Color(0x33FFFFFF))
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Chat,
+                                imageVector = Icons.AutoMirrored.Filled.Chat,
                                 contentDescription = "Chat",
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
@@ -753,8 +834,8 @@ private fun PrivacyAndRedeemTab(
         // 1. Redeem Referral Code Card
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = CyberMidnight),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF16122E)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -821,8 +902,8 @@ private fun PrivacyAndRedeemTab(
         // 2. Privacy Mode: Exclude Contacts Card
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = CyberMidnight),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF16122E)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
         ) {
             Row(
                 modifier = Modifier

@@ -222,6 +222,14 @@ fun TermsOfServiceScreen(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutUsScreen(navController: NavController) {
+    val context = LocalContext.current
+    val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+    val versionName = pInfo.versionName ?: "1.1"
+    val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        pInfo.longVersionCode
+    } else {
+        @Suppress("DEPRECATION") pInfo.versionCode.toLong()
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -252,7 +260,7 @@ fun AboutUsScreen(navController: NavController) {
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Talksy", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold, color = getThemeTextColor())
-                Text("Version 1.0.0", fontSize = 14.sp, color = getThemeSubTextColor())
+                Text("Version $versionName ($versionCode)", fontSize = 14.sp, color = getThemeSubTextColor())
                 Spacer(modifier = Modifier.height(32.dp))
                 
                 Card(

@@ -23,8 +23,6 @@ retrofit = "2.9.0"
 okhttp = "4.12.0"
 socketio = "2.1.0"
 playServicesAuth = "21.1.1"
-credentials = "1.3.0"
-googleid = "1.1.1"
 playServicesLocation = "21.2.0"
 coil = "2.6.0"
 
@@ -69,9 +67,6 @@ retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 socket-io-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 

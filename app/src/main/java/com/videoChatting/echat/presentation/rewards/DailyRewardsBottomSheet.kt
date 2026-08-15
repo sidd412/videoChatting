@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +46,8 @@ private val WHEEL_COLORS = listOf(
     Color(0xFFFF6D00),
     Color(0xFF536DFE)
 )
+
+private val WHEEL_LABELS = listOf("10", "20", "15", "100 👑", "25", "30", "50", "10")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -289,13 +292,34 @@ fun DailyRewardsBottomSheet(
                         val segmentAngle = 360f / 8f
 
                         for (i in 0 until 8) {
+                            val startAngle = i * segmentAngle
                             drawArc(
                                 color = WHEEL_COLORS[i],
-                                startAngle = i * segmentAngle,
+                                startAngle = startAngle,
                                 sweepAngle = segmentAngle,
                                 useCenter = true,
                                 topLeft = Offset(0f, 0f),
                                 size = Size(canvasWidth, canvasHeight)
+                            )
+
+                            // Draw text on segment
+                            val angleInRad = Math.toRadians((startAngle + segmentAngle / 2f).toDouble())
+                            val textRadius = radius * 0.65f
+                            val textX = (center.x + textRadius * Math.cos(angleInRad)).toFloat()
+                            val textY = (center.y + textRadius * Math.sin(angleInRad)).toFloat()
+
+                            val paint = android.graphics.Paint().apply {
+                                color = android.graphics.Color.WHITE
+                                textSize = 32f
+                                textAlign = android.graphics.Paint.Align.CENTER
+                                isFakeBoldText = true
+                                setShadowLayer(4f, 0f, 2f, android.graphics.Color.BLACK)
+                            }
+                            drawContext.canvas.nativeCanvas.drawText(
+                                WHEEL_LABELS[i],
+                                textX,
+                                textY + 12f,
+                                paint
                             )
                         }
 

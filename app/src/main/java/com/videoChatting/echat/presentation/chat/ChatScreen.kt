@@ -64,7 +64,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Partner Profile Picture
+                        val resolvedName = partnerProfile?.name?.takeIf { it.isNotBlank() && it != "Friend" } ?: userName
                         val avatar = partnerProfile?.avatar
                         if (!avatar.isNullOrEmpty()) {
                             AsyncImage(
@@ -84,7 +84,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = userName.take(1).uppercase(),
+                                    text = resolvedName.take(1).uppercase(),
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
@@ -96,7 +96,7 @@ fun ChatScreen(navController: NavController, targetUserId: String, userName: Str
 
                         Column {
                             val contactNum = partnerProfile?.contactNumber
-                            val displayName = if (!contactNum.isNullOrBlank()) "$userName ($contactNum)" else userName
+                            val displayName = if (!contactNum.isNullOrBlank()) "$resolvedName ($contactNum)" else resolvedName
                             Text(
                                 text = displayName,
                                 fontWeight = FontWeight.Bold,

@@ -45,7 +45,7 @@ import com.videoChatting.echat.presentation.theme.*
 @Composable
 fun InviteAndContactsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToChat: (String) -> Unit = {},
+    onNavigateToChat: (String, String) -> Unit = { _, _ -> },
     viewModel: ContactsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -672,7 +672,7 @@ private fun RegisteredContactsTab(
     contacts: List<DeviceContact>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    onNavigateToChat: (String) -> Unit
+    onNavigateToChat: (String, String) -> Unit
 ) {
     val filteredContacts = remember(contacts, searchQuery) {
         if (searchQuery.isBlank()) contacts
@@ -797,7 +797,11 @@ private fun RegisteredContactsTab(
 
                         // Chat Action Button
                         IconButton(
-                            onClick = { user?.let { onNavigateToChat(it.userId) } },
+                            onClick = { 
+                                val friendName = user?.name ?: contact.name
+                                val friendId = user?.userId ?: contact.phoneNumber
+                                onNavigateToChat(friendId, friendName)
+                            },
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)

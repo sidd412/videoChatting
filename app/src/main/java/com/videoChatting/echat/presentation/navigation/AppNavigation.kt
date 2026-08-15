@@ -167,8 +167,8 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
         composable(Screen.InviteAndContacts.route) {
             com.videoChatting.echat.presentation.contacts.InviteAndContactsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToChat = { userId ->
-                    navController.navigate(Screen.Chat.createRoute(userId, "Friend"))
+                onNavigateToChat = { userId, userName ->
+                    navController.navigate(Screen.Chat.createRoute(userId, userName))
                 }
             )
         }

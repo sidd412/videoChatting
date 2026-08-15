@@ -818,23 +818,17 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             )
                         }
 
-                        // 3. CENTER HERO NEXT BUTTON (Slightly larger, glowing gradient & elevated)
+                        // 3. CENTER HERO NEXT BUTTON (Slightly larger with matching clean glass background)
                         Box(
                             modifier = Modifier
                                 .size(46.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (state is DiscoveryState.Matched)
-                                        Brush.linearGradient(listOf(ElectricIndigo, Color(0xFF9333EA)))
-                                    else
-                                        Brush.linearGradient(listOf(Color(0x33FFFFFF), Color(0x22FFFFFF))),
+                                    if (state is DiscoveryState.Matched) Color(0x33FFFFFF) else Color(0x15FFFFFF),
                                     shape = CircleShape
                                 )
                                 .border(
-                                    BorderStroke(
-                                        1.5.dp, 
-                                        if (state is DiscoveryState.Matched) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.2f)
-                                    ), 
+                                    BorderStroke(1.dp, Color.White.copy(alpha = if (state is DiscoveryState.Matched) 0.25f else 0.15f)), 
                                     CircleShape
                                 )
                                 .clickable(enabled = state is DiscoveryState.Matched) {
@@ -845,7 +839,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = "Next Person",
-                                tint = Color.White,
+                                tint = if (state is DiscoveryState.Matched) Color.White else Color.White.copy(alpha = 0.4f),
                                 modifier = Modifier.size(24.dp)
                             )
                         }

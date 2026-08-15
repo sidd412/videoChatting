@@ -97,6 +97,11 @@ fun EditProfileScreen(
         }
     }
 
+    // Trigger fresh profile load on opening Edit Profile
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile()
+    }
+
     // Load initial values once profile is loaded
     LaunchedEffect(userProfile) {
         userProfile?.let {

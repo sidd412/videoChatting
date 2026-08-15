@@ -28,9 +28,21 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun loadProfile() {
-        val profile = sessionManager.getUserProfile()
-        if (profile != null) {
-            _userProfile.value = profile
+        val cached = sessionManager.getUserProfile()
+        if (cached != null) {
+            _userProfile.value = cached
+        }
+        viewModelScope.launch {
+            try {
+                val response = apiService.getSelfProfile()
+                if (response.isSuccessful && response.body() != null) {
+                    val freshUser = response.body()!!.user
+                    sessionManager.saveUserProfile(freshUser)
+                    _userProfile.value = freshUser
+                }
+            } catch (e: Exception) {
+                // Keep cached profile if offline
+            }
         }
     }
 

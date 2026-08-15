@@ -21,6 +21,9 @@ interface ApiService {
         @Body request: GoogleLoginRequest
     ): Response<AuthResponse>
 
+    @GET("auth/profile")
+    suspend fun getSelfProfile(): Response<AuthResponse>
+
     @PUT("auth/profile")
     suspend fun updateProfile(
         @Body request: com.videoChatting.echat.data.remote.model.UpdateProfileRequest

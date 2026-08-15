@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,6 +58,7 @@ import com.videoChatting.echat.utils.Constants
 import io.agora.media.RtcTokenBuilder2
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
+import io.agora.rtc2.video.BeautyOptions
 
 const val AGORA_APP_CERTIFICATE = "e9b8eba92d474ff886c7cb235c181b99"
 
@@ -73,6 +77,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     var reportReason by remember { mutableStateOf("") }
     var showGiftBottomSheet by remember { mutableStateOf(false) }
     var showDailyRewardsSheet by remember { mutableStateOf(false) }
+    var isFullscreenMode by remember { mutableStateOf(false) }
+    var isBeautyOn by remember { mutableStateOf(false) }
 
     val activeGiftEvent by viewModel.activeGiftEvent.collectAsState()
     val floatingEmojis by viewModel.floatingEmojis.collectAsState()
@@ -173,6 +179,19 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             remoteSurfaceView = SurfaceView(context)
             rtcEngine?.setupRemoteVideo(VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_HIDDEN, remoteUid))
         }
+    }
+
+    // Observe Beauty Filter changes
+    LaunchedEffect(isBeautyOn) {
+        val engine = rtcEngine ?: return@LaunchedEffect
+        val options = BeautyOptions().apply {
+            lighteningContrastLevel = BeautyOptions.LIGHTENING_CONTRAST_NORMAL
+            lighteningLevel = 0.7f
+            smoothnessLevel = 0.85f
+            rednessLevel = 0.35f
+            sharpnessLevel = 0.3f
+        }
+        engine.setBeautyEffectOptions(isBeautyOn, options)
     }
 
     DisposableEffect(key1 = true) {
@@ -279,330 +298,427 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             }
         }
         else {
-            // Active split screen for video chat
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Top Half: Remote Video
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(Color.Black)
-                ) {
-                    if (remoteSurfaceView != null) {
-                        AndroidView(
-                            factory = { 
-                                FrameLayout(context).apply { 
-                                    val view = remoteSurfaceView
-                                    if (view != null) {
-                                        (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                        addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
-                                    }
-                                } 
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        
-                        // Glassmorphic name label
+            // Dynamic Video Layout: Supports both Split Screen and Fullscreen PiP
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (!isFullscreenMode) {
+                    // MODE 1: SPLIT SCREEN (50% Remote / 50% Local)
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Top Half: Remote Video
                         Box(
                             modifier = Modifier
-                                .padding(16.dp)
-//                                .clip(RoundedCornerShape(12.dp))
-//                                .background(cardBackground)
-//                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(12.dp))
-//                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .align(Alignment.BottomStart)
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .background(Color.Black)
                         ) {
-                            Text(
-                                text = if (state is DiscoveryState.Matched) (state as DiscoveryState.Matched).match.partner.name else "Stranger",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (remoteSurfaceView != null) {
+                                AndroidView(
+                                    factory = { 
+                                        FrameLayout(context).apply { 
+                                            val view = remoteSurfaceView
+                                            if (view != null) {
+                                                (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                            }
+                                        } 
+                                    },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                RemoteConnectingIndicator(agoraStatus)
+                            }
                         }
-                        
-                        // Show Coin Balance and Daily Bonus Button
-                        val currentCoinsVal by viewModel.currentCoins.collectAsState()
-                        Row(
+
+                        HorizontalDivider(color = cardBorder, thickness = 1.dp)
+
+                        // Bottom Half: Local Video
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .background(Color.Black)
+                        ) {
+                            if (localSurfaceView != null && !isVideoMuted) {
+                                AndroidView(
+                                    factory = { 
+                                        FrameLayout(context).apply { 
+                                            val view = localSurfaceView
+                                            if (view != null) {
+                                                (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                                addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                            }
+                                        } 
+                                    },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Box(modifier = Modifier.fillMaxSize().background(CyberMidnight), contentAlignment = Alignment.Center) {
+                                    Text(if (isVideoMuted) "Camera Off" else "Starting Camera...", color = Color.White.copy(alpha = 0.6f))
+                                }
+                            }
+
+                            // Local Video Overlay Name Tag
+                            Box(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .align(Alignment.TopStart)
+                            ) {
+                                Text("You", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                } else {
+                    // MODE 2: FULLSCREEN WITH FLOATING PiP (WhatsApp / FaceTime style)
+                    // Fullscreen Remote Video
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                        if (remoteSurfaceView != null) {
+                            AndroidView(
+                                factory = { 
+                                    FrameLayout(context).apply { 
+                                        val view = remoteSurfaceView
+                                        if (view != null) {
+                                            (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                            addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                        }
+                                    } 
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            RemoteConnectingIndicator(agoraStatus)
+                        }
+                    }
+
+                    // Floating Local Video Card (PiP)
+                    if (localSurfaceView != null && !isVideoMuted) {
+                        Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(end = 16.dp, top = 24.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                .padding(top = 80.dp, end = 16.dp)
+                                .size(width = 110.dp, height = 160.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.Black)
+                                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+                                .clickable { isFullscreenMode = false }
                         ) {
-                            // 🎡 Daily Rewards / Spin Button
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF261C4E))
-                                    .border(1.dp, Color(0xFFFFD700), RoundedCornerShape(16.dp))
-                                    .clickable { showDailyRewardsSheet = true }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("🎡", fontSize = 13.sp)
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text("Bonus", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
-
-                            // Coins Badge
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(cardBackground)
-                                    .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.MonetizationOn,
-                                    contentDescription = "Coins",
-                                    tint = CoinGold,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "$currentCoinsVal",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
-                                )
-                            }
-                        }
-                        
-                        // Shorts-style vertical action buttons
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(bottom = 32.dp, end = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            var isLiked by remember { mutableStateOf(false) }
-                            var isAdded by remember { mutableStateOf(false) }
-                            
-                            IconButton(
-                                onClick = { 
-                                    isLiked = !isLiked
-                                    if (state is DiscoveryState.Matched) {
-                                        viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
-                                    }
+                            AndroidView(
+                                factory = { 
+                                    FrameLayout(context).apply { 
+                                        val view = localSurfaceView
+                                        if (view != null) {
+                                            (view.parent as? android.view.ViewGroup)?.removeView(view)
+                                            addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
+                                        }
+                                    } 
                                 },
-                                modifier = Modifier
-                                    .background(cardBackground, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
-                            ) {
-                                Icon(
-                                    if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
-                                    contentDescription = "Like", 
-                                    tint = if (isLiked) NeonRose else Color.White
-                                )
-                            }
-                            
-                            IconButton(
-                                onClick = { 
-                                    isAdded = !isAdded
-                                    if (state is DiscoveryState.Matched) {
-                                        viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .background(cardBackground, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
-                            ) {
-                                Icon(
-                                    if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
-                                    contentDescription = "Add", 
-                                    tint = Color.White
-                                )
-                            }
-
-                            IconButton(
-                                onClick = { 
-                                    if (state is DiscoveryState.Matched) {
-                                        showReportDialog = true
-                                    }
-                                },
-                                modifier = Modifier
-                                    .background(cardBackground, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, cardBorder), CircleShape)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Flag, 
-                                    contentDescription = "Report User", 
-                                    tint = Color.Red
-                                )
-                            }
-                        }
-                    } else {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.align(Alignment.Center),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                "Connecting to Stranger...",
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold
+                                modifier = Modifier.fillMaxSize()
                             )
-                            CircularProgressIndicator(color = ElectricIndigo)
-                            if (agoraStatus.isNotEmpty()) {
-                                Text(
-                                    agoraStatus,
-                                    color = CyberCyan,
-                                    fontSize = 12.sp
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(6.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0x88000000))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("You", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
 
-                HorizontalDivider(color = cardBorder, thickness = 1.dp)
+                // --- COMMON IN-CALL OVERLAYS & CONTROLS ---
 
-                // Bottom Half: Local Video
+                // 1. Partner Name Tag (Bottom-left of top video in split / top-left in fullscreen)
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(Color.Black)
+                        .align(if (isFullscreenMode) Alignment.TopStart else Alignment.CenterStart)
+                        .padding(start = 16.dp, top = if (isFullscreenMode) 32.dp else 0.dp, bottom = if (!isFullscreenMode) 24.dp else 0.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0x88000000))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
-                    if (localSurfaceView != null && !isVideoMuted) {
-                        AndroidView(
-                            factory = { 
-                                FrameLayout(context).apply { 
-                                    val view = localSurfaceView
-                                    if (view != null) {
-                                        (view.parent as? android.view.ViewGroup)?.removeView(view)
-                                        addView(view, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) 
-                                    }
-                                } 
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Box(modifier = Modifier.fillMaxSize().background(CyberMidnight), contentAlignment = Alignment.Center) {
-                            Text(if (isVideoMuted) "Camera Off" else "Starting Camera...", color = Color.White.copy(alpha = 0.6f))
-                        }
-                    }
-
-                    // Local Video Overlay Name Tag
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.TopStart)
-                    ) {
-                        Text("You", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-
-                    // In-Call Animation Overlay (Floating Emojis & Celebration Banner)
-                    com.videoChatting.echat.presentation.call.InCallAnimationOverlay(
-                        activeGiftEvent = activeGiftEvent,
-                        floatingEmojis = floatingEmojis
+                    Text(
+                        text = if (state is DiscoveryState.Matched) (state as DiscoveryState.Matched).match.partner.name else "Stranger",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
+                }
 
-                    // Bottom Floating Controls + Quick Reactions
-                    Column(
+                // 2. Top Header: Bonus Button + Coins Balance
+                val currentCoinsVal by viewModel.currentCoins.collectAsState()
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 16.dp, top = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // 🎡 Daily Rewards / Spin Button
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF261C4E))
+                            .border(1.dp, Color(0xFFFFD700), RoundedCornerShape(16.dp))
+                            .clickable { showDailyRewardsSheet = true }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Quick Emoji Reactions Bar (Only during active match)
-                        if (state is DiscoveryState.Matched) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(bottom = 12.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(Color(0x880F172A))
-                                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
-                                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                com.videoChatting.echat.presentation.call.GiftCatalog.QUICK_REACTIONS.forEach { emoji ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .clickable {
-                                                val partnerId = (state as DiscoveryState.Matched).match.partner.userId
-                                                viewModel.sendReaction(partnerId, emoji)
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(text = emoji, fontSize = 18.sp)
-                                    }
-                                }
-                            }
-                        }
+                        Text("🎡", fontSize = 13.sp)
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text("Bonus", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
 
-                        // Floating Glass Controls Capsule
+                    // Coins Badge
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(cardBackground)
+                            .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MonetizationOn,
+                            contentDescription = "Coins",
+                            tint = CoinGold,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "$currentCoinsVal",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+
+                // 3. Right Vertical Action Column (Layout Toggle, Beauty, Camera Flip, Like, Add, Report)
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    var isLiked by remember { mutableStateOf(false) }
+                    var isAdded by remember { mutableStateOf(false) }
+
+                    // Fullscreen / Split Screen Toggle Button
+                    IconButton(
+                        onClick = { 
+                            isFullscreenMode = !isFullscreenMode
+                            Toast.makeText(context, if (isFullscreenMode) "Fullscreen PiP Mode" else "Split View Mode", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier
+                            .background(if (isFullscreenMode) Color(0xFF2563EB) else cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, if (isFullscreenMode) Color(0xFF38BDF8) else cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AspectRatio, 
+                            contentDescription = "Toggle Layout", 
+                            tint = Color.White
+                        )
+                    }
+
+                    // ✨ Beauty & Glow Filter Toggle
+                    IconButton(
+                        onClick = { 
+                            isBeautyOn = !isBeautyOn
+                            Toast.makeText(context, if (isBeautyOn) "Beauty Filter ON ✨" else "Beauty Filter OFF", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier
+                            .background(if (isBeautyOn) Color(0xFF9333EA) else cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, if (isBeautyOn) Color(0xFFFFD700) else cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome, 
+                            contentDescription = "Beauty Filter", 
+                            tint = if (isBeautyOn) Color(0xFFFFD700) else Color.White
+                        )
+                    }
+
+                    // 🔄 Front / Back Camera Flip
+                    IconButton(
+                        onClick = { 
+                            rtcEngine?.switchCamera()
+                        },
+                        modifier = Modifier
+                            .background(cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Cameraswitch, 
+                            contentDescription = "Flip Camera", 
+                            tint = Color.White
+                        )
+                    }
+                    
+                    IconButton(
+                        onClick = { 
+                            isLiked = !isLiked
+                            if (state is DiscoveryState.Matched) {
+                                viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
+                            }
+                        },
+                        modifier = Modifier
+                            .background(cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
+                            contentDescription = "Like", 
+                            tint = if (isLiked) NeonRose else Color.White
+                        )
+                    }
+                    
+                    IconButton(
+                        onClick = { 
+                            isAdded = !isAdded
+                            if (state is DiscoveryState.Matched) {
+                                viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
+                            }
+                        },
+                        modifier = Modifier
+                            .background(cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
+                            contentDescription = "Add", 
+                            tint = Color.White
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { 
+                            if (state is DiscoveryState.Matched) {
+                                showReportDialog = true
+                            }
+                        },
+                        modifier = Modifier
+                            .background(cardBackground, shape = CircleShape)
+                            .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Flag, 
+                            contentDescription = "Report User", 
+                            tint = Color.Red
+                        )
+                    }
+                }
+
+                // 4. In-Call Full-Screen Celebration & Floating Emojis Layer
+                com.videoChatting.echat.presentation.call.InCallAnimationOverlay(
+                    activeGiftEvent = activeGiftEvent,
+                    floatingEmojis = floatingEmojis
+                )
+
+                // 5. Bottom Controls & Quick Reactions
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Quick Emoji Reactions Bar (Only during active match)
+                    if (state is DiscoveryState.Matched) {
                         Row(
                             modifier = Modifier
-                                .background(cardBackground, shape = RoundedCornerShape(32.dp))
-                                .border(BorderStroke(1.dp, cardBorder), shape = RoundedCornerShape(32.dp))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.Center,
+                                .padding(bottom = 12.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color(0x880F172A))
+                                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(
-                                onClick = { 
-                                    isMuted = !isMuted
-                                    rtcEngine?.muteLocalAudioStream(isMuted)
-                                },
-                                modifier = Modifier
-                                    .background(if (isMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, if (isMuted) NeonRose else cardBorder), CircleShape)
-                            ) {
-                                Icon(if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, contentDescription = "Mute", tint = Color.White)
-                            }
-                            
-                            Spacer(modifier = Modifier.width(14.dp))
-
-                            // Gift Button (Only during active match)
-                            if (state is DiscoveryState.Matched) {
+                            com.videoChatting.echat.presentation.call.GiftCatalog.QUICK_REACTIONS.forEach { emoji ->
                                 Box(
                                     modifier = Modifier
-                                        .size(46.dp)
+                                        .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF261C4E))
-                                        .border(1.5.dp, Color(0xFFFFD700), CircleShape)
-                                        .clickable { showGiftBottomSheet = true },
+                                        .clickable {
+                                            val partnerId = (state as DiscoveryState.Matched).match.partner.userId
+                                            viewModel.sendReaction(partnerId, emoji)
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("🎁", fontSize = 22.sp)
+                                    Text(text = emoji, fontSize = 18.sp)
                                 }
-                                Spacer(modifier = Modifier.width(14.dp))
                             }
-                            
-                            IconButton(
-                                onClick = { 
-                                    isVideoMuted = !isVideoMuted
-                                    rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                                },
+                        }
+                    }
+
+                    // Floating Glass Controls Capsule
+                    Row(
+                        modifier = Modifier
+                            .background(cardBackground, shape = RoundedCornerShape(32.dp))
+                            .border(BorderStroke(1.dp, cardBorder), shape = RoundedCornerShape(32.dp))
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { 
+                                isMuted = !isMuted
+                                rtcEngine?.muteLocalAudioStream(isMuted)
+                            },
+                            modifier = Modifier
+                                .background(if (isMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else cardBorder), CircleShape)
+                        ) {
+                            Icon(if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, contentDescription = "Mute", tint = Color.White)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        // Gift Button (Only during active match)
+                        if (state is DiscoveryState.Matched) {
+                            Box(
                                 modifier = Modifier
-                                    .background(if (isVideoMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
-                                    .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else cardBorder), CircleShape)
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF261C4E))
+                                    .border(1.5.dp, Color(0xFFFFD700), CircleShape)
+                                    .clickable { showGiftBottomSheet = true },
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, contentDescription = "Video", tint = Color.White)
+                                Text("🎁", fontSize = 22.sp)
                             }
-                            
                             Spacer(modifier = Modifier.width(14.dp))
-                            
-                            Button(
-                                onClick = { viewModel.nextPerson() },
-                                enabled = state is DiscoveryState.Matched,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = ElectricIndigo,
-                                    disabledContainerColor = cardBackground
-                                ),
-                                shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.height(48.dp)
-                            ) {
-                                if (state is DiscoveryState.Matched) {
-                                    Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = Color.White)
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                }
-                                Text(if (state is DiscoveryState.Matched) "Next" else "Searching...", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                        
+                        IconButton(
+                            onClick = { 
+                                isVideoMuted = !isVideoMuted
+                                rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                            },
+                            modifier = Modifier
+                                .background(if (isVideoMuted) NeonRose.copy(alpha = 0.2f) else Color.Transparent, shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else cardBorder), CircleShape)
+                        ) {
+                            Icon(if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, contentDescription = "Video", tint = Color.White)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(14.dp))
+                        
+                        Button(
+                            onClick = { viewModel.nextPerson() },
+                            enabled = state is DiscoveryState.Matched,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ElectricIndigo,
+                                disabledContainerColor = cardBackground
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.height(48.dp)
+                        ) {
+                            if (state is DiscoveryState.Matched) {
+                                Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = Color.White)
+                                Spacer(modifier = Modifier.width(6.dp))
                             }
+                            Text(if (state is DiscoveryState.Matched) "Next" else "Searching...", fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -709,6 +825,31 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
         com.videoChatting.echat.presentation.rewards.DailyRewardsBottomSheet(
             onDismiss = { showDailyRewardsSheet = false }
         )
+    }
+}
+
+@Composable
+fun RemoteConnectingIndicator(agoraStatus: String, modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            "Connecting to Stranger...",
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        CircularProgressIndicator(color = ElectricIndigo)
+        if (agoraStatus.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                agoraStatus,
+                color = CyberCyan,
+                fontSize = 12.sp
+            )
+        }
     }
 }
 

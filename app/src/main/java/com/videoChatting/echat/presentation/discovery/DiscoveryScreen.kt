@@ -72,6 +72,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     var showReportDialog by remember { mutableStateOf(false) }
     var reportReason by remember { mutableStateOf("") }
     var showGiftBottomSheet by remember { mutableStateOf(false) }
+    var showDailyRewardsSheet by remember { mutableStateOf(false) }
 
     val activeGiftEvent by viewModel.activeGiftEvent.collectAsState()
     val floatingEmojis by viewModel.floatingEmojis.collectAsState()
@@ -318,31 +319,51 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             )
                         }
                         
-                        // Show Coin Balance
-                        val currentCoins by viewModel.currentCoins.collectAsState()
-                        Box(
+                        // Show Coin Balance and Daily Bonus Button
+                        val currentCoinsVal by viewModel.currentCoins.collectAsState()
+                        Row(
                             modifier = Modifier
-//                                .statusBarsPadding()
-                                .padding(end = 16.dp, top = 24.dp)
-//                                .clip(RoundedCornerShape(16.dp))
-//                                .background(cardBackground)
-//                                .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
-//                                .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .align(Alignment.TopEnd)
+                                .padding(end = 16.dp, top = 24.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            // 🎡 Daily Rewards / Spin Button
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF261C4E))
+                                    .border(1.dp, Color(0xFFFFD700), RoundedCornerShape(16.dp))
+                                    .clickable { showDailyRewardsSheet = true }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🎡", fontSize = 13.sp)
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text("Bonus", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            // Coins Badge
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(cardBackground)
+                                    .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.MonetizationOn,
                                     contentDescription = "Coins",
                                     tint = CoinGold,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(15.dp)
                                 )
-                                Spacer(modifier = Modifier.width(2.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
-                                    text = "$currentCoins",
+                                    text = "$currentCoinsVal",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    fontSize = 13.sp
                                 )
                             }
                         }
@@ -680,6 +701,13 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                 showGiftBottomSheet = false
                 Toast.makeText(context, "Redirecting to Coin Wallet...", Toast.LENGTH_SHORT).show()
             }
+        )
+    }
+
+    // Daily Rewards (Streak & Lucky Spin Wheel) Bottom Sheet
+    if (showDailyRewardsSheet) {
+        com.videoChatting.echat.presentation.rewards.DailyRewardsBottomSheet(
+            onDismiss = { showDailyRewardsSheet = false }
         )
     }
 }

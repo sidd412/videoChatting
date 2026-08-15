@@ -168,6 +168,60 @@ fun WalletScreen(
                 }
             }
 
+            var showDailyRewardsSheet by remember { mutableStateOf(false) }
+
+            // Daily Free Coins & Lucky Spin Banner
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            listOf(Color(0xFF4C1D95), Color(0xFF7C3AED))
+                        )
+                    )
+                    .clickable { showDailyRewardsSheet = true }
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎡", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Daily Bonus & Lucky Spin",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Free coins everyday + win up to 200 coins!",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "Claim →",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+            }
+
+            if (showDailyRewardsSheet) {
+                com.videoChatting.echat.presentation.rewards.DailyRewardsBottomSheet(
+                    onDismiss = { showDailyRewardsSheet = false }
+                )
+            }
+
             Text(
                 text = "Buy Coins",
                 fontSize = 20.sp,

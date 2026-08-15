@@ -84,6 +84,15 @@ interface ApiService {
     suspend fun raiseRequest(
         @Body request: com.videoChatting.echat.data.remote.RaiseRequestDto
     ): Response<com.videoChatting.echat.data.remote.RaiseRequestResponse>
+
+    @GET("rewards/status")
+    suspend fun getRewardsStatus(): Response<com.videoChatting.echat.data.remote.model.RewardsStatusResponse>
+
+    @POST("rewards/check-in")
+    suspend fun claimDailyCheckIn(): Response<com.videoChatting.echat.data.remote.model.CheckInResponse>
+
+    @POST("rewards/spin")
+    suspend fun spinLuckyWheel(): Response<com.videoChatting.echat.data.remote.model.SpinResponse>
 }
 
 data class RaiseRequestDto(

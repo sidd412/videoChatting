@@ -439,10 +439,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             modifier = Modifier
                                 .align(Alignment.TopStart)
                                 .padding(start = 16.dp, top = 68.dp)
-                                .size(78.dp)
+                                .size(82.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black)
-                                .border(2.dp, Color(0xFF38BDF8), CircleShape)
+                                .border(2.5.dp, Color(0xFF38BDF8), CircleShape)
                                 .clickable { isFullscreenMode = false }
                         ) {
                             AndroidView(
@@ -452,11 +452,23 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT
                                         )
+                                        clipToOutline = true
+                                        outlineProvider = object : android.view.ViewOutlineProvider() {
+                                            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                                                outline.setOval(0, 0, view.width, view.height)
+                                            }
+                                        }
                                     }
                                 },
                                 update = { container ->
                                     val view = localSurfaceView
                                     if (view != null) {
+                                        view.clipToOutline = true
+                                        view.outlineProvider = object : android.view.ViewOutlineProvider() {
+                                            override fun getOutline(v: android.view.View, outline: android.graphics.Outline) {
+                                                outline.setOval(0, 0, v.width, v.height)
+                                            }
+                                        }
                                         if (view.parent !== container) {
                                             (view.parent as? android.view.ViewGroup)?.removeView(view)
                                             container.removeAllViews()
@@ -475,9 +487,9 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(bottom = 2.dp)
+                                    .padding(bottom = 3.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0x88000000))
+                                    .background(Color(0xAA000000))
                                     .padding(horizontal = 4.dp, vertical = 1.dp)
                             ) {
                                 Text("You", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)

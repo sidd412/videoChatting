@@ -518,27 +518,29 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
                 }
 
-                // 2. Right Vertical Action Column (Layout Toggle, Beauty, Camera Flip, Like, Add, Report) - 25% Reduced
+                // 2. Right Vertical Action Column (Layout Toggle, Beauty, Camera Flip, Like, Add, Report)
                 Column(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .padding(end = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     var isLiked by remember { mutableStateOf(false) }
                     var isAdded by remember { mutableStateOf(false) }
 
                     // Fullscreen / Split Screen Toggle Button
-                    IconButton(
-                        onClick = { 
-                            isFullscreenMode = !isFullscreenMode
-                            Toast.makeText(context, if (isFullscreenMode) "Fullscreen PiP Mode" else "Split View Mode", Toast.LENGTH_SHORT).show()
-                        },
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(if (isFullscreenMode) Color(0xFF2563EB) else cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, if (isFullscreenMode) Color(0xFF38BDF8) else cardBorder), CircleShape)
+                            .clickable {
+                                isFullscreenMode = !isFullscreenMode
+                                Toast.makeText(context, if (isFullscreenMode) "Fullscreen PiP Mode" else "Split View Mode", Toast.LENGTH_SHORT).show()
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AspectRatio, 
@@ -549,15 +551,17 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
 
                     // ✨ Beauty & Glow Filter Toggle
-                    IconButton(
-                        onClick = { 
-                            isBeautyOn = !isBeautyOn
-                            Toast.makeText(context, if (isBeautyOn) "Beauty Filter ON ✨" else "Beauty Filter OFF", Toast.LENGTH_SHORT).show()
-                        },
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(if (isBeautyOn) Color(0xFF9333EA) else cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, if (isBeautyOn) Color(0xFFFFD700) else cardBorder), CircleShape)
+                            .clickable {
+                                isBeautyOn = !isBeautyOn
+                                Toast.makeText(context, if (isBeautyOn) "Beauty Filter ON ✨" else "Beauty Filter OFF", Toast.LENGTH_SHORT).show()
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome, 
@@ -568,14 +572,14 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
 
                     // 🔄 Front / Back Camera Flip
-                    IconButton(
-                        onClick = { 
-                            rtcEngine?.switchCamera()
-                        },
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                            .clickable { rtcEngine?.switchCamera() },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Cameraswitch, 
@@ -585,17 +589,20 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         )
                     }
                     
-                    IconButton(
-                        onClick = { 
-                            isLiked = !isLiked
-                            if (state is DiscoveryState.Matched) {
-                                viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
-                            }
-                        },
+                    // Like Button
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                            .clickable {
+                                isLiked = !isLiked
+                                if (state is DiscoveryState.Matched) {
+                                    viewModel.toggleLike((state as DiscoveryState.Matched).match.partner.userId, isLiked)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
@@ -605,17 +612,20 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         )
                     }
                     
-                    IconButton(
-                        onClick = { 
-                            isAdded = !isAdded
-                            if (state is DiscoveryState.Matched) {
-                                viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
-                            }
-                        },
+                    // Add Friend Button
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                            .clickable {
+                                isAdded = !isAdded
+                                if (state is DiscoveryState.Matched) {
+                                    viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
@@ -625,16 +635,19 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         )
                     }
 
-                    IconButton(
-                        onClick = { 
-                            if (state is DiscoveryState.Matched) {
-                                showReportDialog = true
-                            }
-                        },
+                    // Report User Button
+                    Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
                             .background(cardBackground, shape = CircleShape)
                             .border(BorderStroke(1.dp, cardBorder), CircleShape)
+                            .clickable {
+                                if (state is DiscoveryState.Matched) {
+                                    showReportDialog = true
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Flag, 
@@ -666,14 +679,14 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .clip(RoundedCornerShape(24.dp))
                                 .background(Color(0x880F172A))
                                 .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
-                                .padding(horizontal = 12.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                .padding(horizontal = 14.dp, vertical = 5.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             com.videoChatting.echat.presentation.call.GiftCatalog.QUICK_REACTIONS.forEach { emoji ->
                                 Box(
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(32.dp)
                                         .clip(CircleShape)
                                         .clickable {
                                             val partnerId = (state as DiscoveryState.Matched).match.partner.userId
@@ -687,25 +700,28 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // Floating Controls Capsule - Matching Reactions Glass Overlay & Reduced Height
+                    // Floating Controls Capsule - Matching Reactions Glass Overlay with Crisp Spacing
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(28.dp))
                             .background(Color(0x880F172A))
                             .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(28.dp))
-                            .padding(horizontal = 14.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.Center,
+                            .padding(horizontal = 16.dp, vertical = 7.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(
-                            onClick = { 
-                                isMuted = !isMuted
-                                rtcEngine?.muteLocalAudioStream(isMuted)
-                            },
+                        // Mute Audio Button
+                        Box(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(if (isMuted) NeonRose.copy(alpha = 0.25f) else Color.Transparent, shape = CircleShape)
-                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else Color.White.copy(alpha = 0.15f)), CircleShape)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(if (isMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
+                                .clickable {
+                                    isMuted = !isMuted
+                                    rtcEngine?.muteLocalAudioStream(isMuted)
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 if (isMuted) Icons.Default.MicOff else Icons.Default.Mic, 
@@ -714,34 +730,34 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 modifier = Modifier.size(19.dp)
                             )
                         }
-                        
-                        Spacer(modifier = Modifier.width(10.dp))
 
                         // Gift Button (Only during active match)
                         if (state is DiscoveryState.Matched) {
                             Box(
                                 modifier = Modifier
-                                    .size(38.dp)
+                                    .size(40.dp)
                                     .clip(CircleShape)
                                     .background(Color(0xFF261C4E))
-                                    .border(1.2.dp, Color(0xFFFFD700), CircleShape)
+                                    .border(1.5.dp, Color(0xFFFFD700), CircleShape)
                                     .clickable { showGiftBottomSheet = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("🎁", fontSize = 18.sp)
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
                         }
                         
-                        IconButton(
-                            onClick = { 
-                                isVideoMuted = !isVideoMuted
-                                rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                            },
+                        // Mute Video Button
+                        Box(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(if (isVideoMuted) NeonRose.copy(alpha = 0.25f) else Color.Transparent, shape = CircleShape)
-                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else Color.White.copy(alpha = 0.15f)), CircleShape)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(if (isVideoMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
+                                .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
+                                .clickable {
+                                    isVideoMuted = !isVideoMuted
+                                    rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam, 
@@ -751,21 +767,22 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             )
                         }
                         
-                        Spacer(modifier = Modifier.width(10.dp))
-                        
-                        // Next Person Icon Button - Matching Same Sleek Design
-                        IconButton(
-                            onClick = { viewModel.nextPerson() },
-                            enabled = state is DiscoveryState.Matched,
+                        // Next Person Button
+                        Box(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(Color.Transparent, shape = CircleShape)
-                                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)), CircleShape)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(if (state is DiscoveryState.Matched) Color(0x33FFFFFF) else Color(0x11FFFFFF), shape = CircleShape)
+                                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), CircleShape)
+                                .clickable(enabled = state is DiscoveryState.Matched) {
+                                    viewModel.nextPerson()
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = "Next Person",
-                                tint = Color.White,
+                                tint = if (state is DiscoveryState.Matched) Color.White else Color.White.copy(alpha = 0.4f),
                                 modifier = Modifier.size(19.dp)
                             )
                         }

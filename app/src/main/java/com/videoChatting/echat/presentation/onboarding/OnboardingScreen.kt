@@ -2,6 +2,7 @@ package com.videoChatting.echat.presentation.onboarding
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
@@ -103,6 +104,24 @@ fun OnboardingScreen(
     }
 
     var currentStep by remember { mutableIntStateOf(0) }
+    var referralCodeInput by remember { mutableStateOf("") }
+
+    // Auto-detect referral code from clipboard (e.g. TALK-XXXX or copied invite link)
+    LaunchedEffect(Unit) {
+        try {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val clipText = clipboard?.primaryClip?.getItemAt(0)?.text?.toString()
+            if (!clipText.isNullOrBlank()) {
+                val match = Regex("""\bTALK-[A-Z0-9]{4,8}\b""").find(clipText)
+                if (match != null) {
+                    referralCodeInput = match.value
+                    Toast.makeText(context, "🎁 Referral Code ${match.value} applied!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore if clipboard empty or restricted
+        }
+    }
 
     LaunchedEffect(state) {
         if (state is OnboardingState.Success) {
@@ -159,7 +178,8 @@ fun OnboardingScreen(
                                 prefMinAge = 18,
                                 prefMaxAge = 99,
                                 filterType = "country",
-                                kmRadius = 50
+                                kmRadius = 50,
+                                referralCode = referralCodeInput.ifBlank { null }
                             )
                         }) {
                             Text("Skip", fontWeight = FontWeight.Bold, color = CyberCyan)
@@ -288,6 +308,40 @@ fun OnboardingScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier.align(Alignment.End),
                                         color = subTextColor
+                                    )
+                                }
+                            }
+
+                            // Optional Referral Code Card (Auto-populated if detected from WhatsApp invite)
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                colors = CardDefaults.cardColors(containerColor = cardBackground),
+                                border = BorderStroke(1.dp, if (referralCodeInput.isNotBlank()) ElectricViolet else cardBorder),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(20.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("🎁", fontSize = 18.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Have an Invite Code? (+50 🪙 Free)",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = if (referralCodeInput.isNotBlank()) CoinGold else textColor
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    OutlinedTextField(
+                                        value = referralCodeInput,
+                                        onValueChange = { referralCodeInput = it.uppercase().trim() },
+                                        placeholder = { Text("e.g. TALK-ANTG (Optional)", color = subTextColor) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        textStyle = LocalTextStyle.current.copy(color = textColor),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = ElectricIndigo,
+                                            unfocusedBorderColor = cardBorder
+                                        )
                                     )
                                 }
                             }
@@ -654,7 +708,8 @@ fun OnboardingScreen(
                                         prefMinAge = 18,
                                         prefMaxAge = 99,
                                         filterType = filterType,
-                                        kmRadius = kmRadius.toInt()
+                                        kmRadius = kmRadius.toInt(),
+                                        referralCode = referralCodeInput.ifBlank { null }
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),

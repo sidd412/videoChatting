@@ -153,13 +153,13 @@ fun ChatsHomeScreen(
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(19.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 1. Top FAB: Invite & Sync Phone Contacts (Rounded rectangle FAB)
                 SmallFloatingActionButton(
                     onClick = { navController.navigate("invite_and_contacts") },
                     containerColor = Color(0xFF261C4E),
-                    contentColor = Color(0xFF38BDF8),
+                    contentColor = Color.LightGray,
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
@@ -173,7 +173,7 @@ fun ChatsHomeScreen(
                 FloatingActionButton(
                     onClick = onNavigateToDiscovery,
                     containerColor = Color(0xFF261C4E),
-                    contentColor = Color(0xFF38BDF8),
+                    contentColor = Color.LightGray,
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(

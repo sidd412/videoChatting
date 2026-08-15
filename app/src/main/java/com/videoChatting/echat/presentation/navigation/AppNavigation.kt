@@ -44,6 +44,15 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
     val sessionManager = SessionManager(context)
 
     LaunchedEffect(intent) {
+        // DeepLink Referral handling (e.g. talksy://invite?code=TALK-XXXX or https://talksy.app/invite?code=TALK-XXXX)
+        val deepLinkCode = intent?.data?.getQueryParameter("code")
+        if (!deepLinkCode.isNullOrBlank()) {
+            val userProfile = sessionManager.getUserProfile()
+            if (userProfile != null && sessionManager.getAuthToken() != null) {
+                navController.navigate(Screen.InviteAndContacts.route)
+            }
+        }
+
         // FCM background notifications put data fields directly into the Intent extras.
         // So we check "type" (from FCM data payload) OR "notification_type" (from our foreground service)
         val type = intent?.getStringExtra("notification_type") ?: intent?.getStringExtra("type")

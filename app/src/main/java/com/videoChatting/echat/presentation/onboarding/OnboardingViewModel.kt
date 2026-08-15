@@ -38,7 +38,8 @@ class OnboardingViewModel @Inject constructor(
         prefMinAge: Int,
         prefMaxAge: Int,
         filterType: String,
-        kmRadius: Int
+        kmRadius: Int,
+        referralCode: String? = null
     ) {
         _state.value = OnboardingState.Loading
         viewModelScope.launch {
@@ -59,6 +60,18 @@ class OnboardingViewModel @Inject constructor(
                 val response = apiService.updateProfile(request)
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
+                    
+                    // Claim referral bonus if referral code was provided
+                    if (!referralCode.isNullOrBlank()) {
+                        try {
+                            apiService.claimReferralCode(
+                                com.videoChatting.echat.data.remote.model.ClaimReferralRequest(referralCode.trim())
+                            )
+                        } catch (e: Exception) {
+                            // Non-fatal if referral code fails
+                        }
+                    }
+
                     // Save the updated profile locally
                     sessionManager.saveUserProfile(body.user)
                     _state.value = OnboardingState.Success

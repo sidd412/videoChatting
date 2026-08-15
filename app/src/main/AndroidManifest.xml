@@ -50,6 +50,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Deep Links for Viral Referral Invites (talksy://invite and https://talksy.app/invite) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="talksy" android:host="invite" />
+                <data android:scheme="https" android:host="talksy.app" android:pathPrefix="/invite" />
+            </intent-filter>
         </activity>
 
         <activity

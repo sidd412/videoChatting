@@ -579,7 +579,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     }
                 }
 
-                // 2. Right Vertical Action Column (Layout Toggle, Beauty, Camera Flip, Like, Add, Report)
+                // 2. Right Vertical Action Column (Layout Toggle, Beauty, Camera Flip, Like, Report)
                 Column(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
@@ -588,7 +588,6 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     var isLiked by remember { mutableStateOf(false) }
-                    var isAdded by remember { mutableStateOf(false) }
 
                     // Fullscreen / Split Screen Toggle Button
                     Box(
@@ -669,29 +668,6 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                             if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
                             contentDescription = "Like", 
                             tint = if (isLiked) NeonRose else Color.White,
-                            modifier = Modifier.size(19.dp)
-                        )
-                    }
-                    
-                    // Add Friend Button
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(cardBackground, shape = CircleShape)
-                            .border(BorderStroke(1.dp, cardBorder), CircleShape)
-                            .clickable {
-                                isAdded = !isAdded
-                                if (state is DiscoveryState.Matched) {
-                                    viewModel.toggleAdd((state as DiscoveryState.Matched).match.partner.userId, isAdded)
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            if (isAdded) Icons.Default.PersonRemove else Icons.Default.PersonAdd, 
-                            contentDescription = "Add", 
-                            tint = Color.White,
                             modifier = Modifier.size(19.dp)
                         )
                     }

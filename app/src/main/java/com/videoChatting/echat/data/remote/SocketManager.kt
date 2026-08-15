@@ -32,6 +32,12 @@ class SocketManager @Inject constructor(
     private val _userStatusEvents = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 10)
     val userStatusEvents: SharedFlow<Pair<String, Boolean>> = _userStatusEvents.asSharedFlow()
 
+    private val _giftReceivedEvents = MutableSharedFlow<com.videoChatting.echat.presentation.call.GiftReceivedEvent>(extraBufferCapacity = 10)
+    val giftReceivedEvents: SharedFlow<com.videoChatting.echat.presentation.call.GiftReceivedEvent> = _giftReceivedEvents.asSharedFlow()
+
+    private val _reactionReceivedEvents = MutableSharedFlow<String>(extraBufferCapacity = 20)
+    val reactionReceivedEvents: SharedFlow<String> = _reactionReceivedEvents.asSharedFlow()
+
     companion object {
         private const val TAG = "SocketManager"
     }
@@ -159,6 +165,56 @@ class SocketManager @Inject constructor(
                             _userStatusEvents.tryEmit(Pair(user.userId, true)) // trigger UI update
                         }
                     }
+                }
+            }
+
+            socket?.on("wallet_updated") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val coinsBalance = data.optInt("coinsBalance", -1)
+                    if (coinsBalance >= 0) {
+                        Log.d(TAG, "💰 Wallet Updated (Live): $coinsBalance coins")
+                        val user = sessionManager.getUserProfile()
+                        if (user != null) {
+                            sessionManager.updateCoins(coinsBalance)
+                            _userStatusEvents.tryEmit(Pair(user.userId, true))
+                        }
+                    }
+                }
+            }
+
+            socket?.on("gift_received") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    Log.d(TAG, "🎁 Gift Received: $data")
+                    val senderId = data.optString("senderId")
+                    val senderName = data.optString("senderName", "Friend")
+                    val giftId = data.optString("giftId")
+                    val giftName = data.optString("giftName")
+                    val coins = data.optInt("coins", 0)
+                    val icon = data.optString("icon", "🎁")
+                    val timestamp = data.optLong("timestamp", System.currentTimeMillis())
+
+                    _giftReceivedEvents.tryEmit(
+                        com.videoChatting.echat.presentation.call.GiftReceivedEvent(
+                            senderId = senderId,
+                            senderName = senderName,
+                            giftId = giftId,
+                            giftName = giftName,
+                            coins = coins,
+                            icon = icon,
+                            timestamp = timestamp
+                        )
+                    )
+                }
+            }
+
+            socket?.on("reaction_received") { args ->
+                val data = args.getOrNull(0) as? JSONObject
+                if (data != null) {
+                    val emoji = data.optString("emoji", "❤️")
+                    Log.d(TAG, "Floating Reaction: $emoji")
+                    _reactionReceivedEvents.tryEmit(emoji)
                 }
             }
 
@@ -319,6 +375,29 @@ class SocketManager @Inject constructor(
             .put("receiverId", profile.userId)
         Log.d(TAG, "Sending mark_as_read: $json")
         socket?.emit("mark_as_read", json)
+    }
+
+    fun sendGift(partnerId: String, gift: com.videoChatting.echat.presentation.call.GiftItem) {
+        val profile = sessionManager.getUserProfile() ?: return
+        val json = JSONObject()
+            .put("senderId", profile.userId)
+            .put("partnerId", partnerId)
+            .put("giftId", gift.id)
+            .put("giftName", gift.name)
+            .put("coins", gift.coinCost)
+            .put("icon", gift.icon)
+        Log.d(TAG, "🎁 Emitting send_gift: $json")
+        socket?.emit("send_gift", json)
+    }
+
+    fun sendReaction(partnerId: String, emoji: String) {
+        val profile = sessionManager.getUserProfile() ?: return
+        val json = JSONObject()
+            .put("senderId", profile.userId)
+            .put("partnerId", partnerId)
+            .put("emoji", emoji)
+        Log.d(TAG, "Emitting send_reaction: $json")
+        socket?.emit("send_reaction", json)
     }
 
     fun disconnect() {

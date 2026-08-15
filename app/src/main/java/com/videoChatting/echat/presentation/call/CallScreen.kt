@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.videoChatting.echat.utils.Constants
@@ -46,15 +47,29 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import kotlinx.coroutines.launch
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.videoChatting.echat.presentation.theme.ElectricIndigo
+
 @Composable
-fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
+fun CallScreen(
+    channelName: String, 
+    onCallEnded: () -> Unit,
+    viewModel: CallViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     var isMuted by remember { mutableStateOf(false) }
     var isVideoMuted by remember { mutableStateOf(false) }
     var showReportDialog1 by remember { mutableStateOf(false) }
     var showReportDialog2 by remember { mutableStateOf(false) }
+    var showGiftBottomSheet by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+
+    val coinsBalance by viewModel.coinsBalance.collectAsState()
+    val activeGiftEvent by viewModel.activeGiftEvent.collectAsState()
+    val floatingEmojis by viewModel.floatingEmojis.collectAsState()
 
     var rtcEngine by remember { mutableStateOf<RtcEngine?>(null) }
     var localSurfaceView by remember { mutableStateOf<SurfaceView?>(null) }
@@ -215,65 +230,135 @@ fun CallScreen(channelName: String, onCallEnded: () -> Unit) {
             }
         }
 
-        // Controls
-        Row(
+        // 3. Real-time Full-screen Animation Overlay (Gifts & Floating Emojis)
+        InCallAnimationOverlay(
+            activeGiftEvent = activeGiftEvent,
+            floatingEmojis = floatingEmojis
+        )
+
+        // 4. Floating Quick Reactions Bar + In-Call Controls
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(32.dp)
+                .padding(bottom = 24.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mute Audio
-            IconButton(
-                onClick = {
-                    isMuted = !isMuted
-                    rtcEngine?.muteLocalAudioStream(isMuted)
-                },
+            // Floating Quick Emojis Bar
+            Row(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .background(if (isMuted) Color.White else Color.DarkGray.copy(alpha = 0.5f))
-                    .padding(8.dp)
+                    .padding(bottom = 16.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0x880F172A))
+                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
-                    contentDescription = "Mute",
-                    tint = if (isMuted) Color.Black else Color.White
-                )
+                GiftCatalog.QUICK_REACTIONS.forEach { emoji ->
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                viewModel.sendReaction(channelName, emoji)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = emoji, fontSize = 20.sp)
+                    }
+                }
             }
 
-            // End Call
-            IconButton(
-                onClick = { onCallEnded() },
+            // Main Call Controls
+            Row(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .background(Color.Red)
-                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.CallEnd,
-                    contentDescription = "End Call",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+                // Mute Audio
+                IconButton(
+                    onClick = {
+                        isMuted = !isMuted
+                        rtcEngine?.muteLocalAudioStream(isMuted)
+                    },
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(if (isMuted) Color.White else Color.DarkGray.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                        contentDescription = "Mute",
+                        tint = if (isMuted) Color.Black else Color.White
+                    )
+                }
 
-            // Mute Video
-            IconButton(
-                onClick = {
-                    isVideoMuted = !isVideoMuted
-                    rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                },
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(if (isVideoMuted) Color.White else Color.DarkGray.copy(alpha = 0.5f))
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam,
-                    contentDescription = "Video",
-                    tint = if (isVideoMuted) Color.Black else Color.White
-                )
+                // Send Gift Button (Special Highlighted)
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF261C4E))
+                        .border(2.dp, Color(0xFFFFD700), CircleShape)
+                        .clickable { showGiftBottomSheet = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🎁", fontSize = 26.sp)
+                }
+
+                // End Call
+                IconButton(
+                    onClick = { onCallEnded() },
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEF4444))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CallEnd,
+                        contentDescription = "End Call",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                // Mute Video
+                IconButton(
+                    onClick = {
+                        isVideoMuted = !isVideoMuted
+                        rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                    },
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(if (isVideoMuted) Color.White else Color.DarkGray.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        imageVector = if (isVideoMuted) Icons.Default.VideocamOff else Icons.Default.Videocam,
+                        contentDescription = "Video",
+                        tint = if (isVideoMuted) Color.Black else Color.White
+                    )
+                }
             }
+        }
+
+        // 5. Gift Bottom Sheet
+        if (showGiftBottomSheet) {
+            GiftBottomSheet(
+                currentCoins = coinsBalance,
+                onDismiss = { showGiftBottomSheet = false },
+                onSendGift = { gift ->
+                    viewModel.sendGift(channelName, gift)
+                    Toast.makeText(context, "Sent ${gift.name}! ${gift.icon}", Toast.LENGTH_SHORT).show()
+                },
+                onRechargeClicked = {
+                    showGiftBottomSheet = false
+                    Toast.makeText(context, "Redirecting to Wallet...", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
 
         // Report Dialog 1 (Reason Selection)

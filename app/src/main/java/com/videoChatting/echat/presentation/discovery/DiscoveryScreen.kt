@@ -13,9 +13,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
@@ -77,8 +79,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     var reportReason by remember { mutableStateOf("") }
     var showGiftBottomSheet by remember { mutableStateOf(false) }
     var showDailyRewardsSheet by remember { mutableStateOf(false) }
+    var showEmojiPicker by remember { mutableStateOf(false) }
     var isFullscreenMode by remember { mutableStateOf(false) }
     var isBeautyOn by remember { mutableStateOf(false) }
+    var callSeconds by remember { mutableIntStateOf(0) }
 
     val activeGiftEvent by viewModel.activeGiftEvent.collectAsState()
     val floatingEmojis by viewModel.floatingEmojis.collectAsState()
@@ -151,6 +155,8 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
     LaunchedEffect(state) {
         if (state is DiscoveryState.Matched) {
             val match = (state as DiscoveryState.Matched).match
+            callSeconds = 0
+            showEmojiPicker = false
             try {
                 val engine = rtcEngine ?: return@LaunchedEffect
                 
@@ -168,9 +174,21 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             // Leave channel if we were in one
             rtcEngine?.leaveChannel()
             agoraStatus = ""
+            callSeconds = 0
+            showEmojiPicker = false
             // Force reset to guarantee LaunchedEffect triggers on next match
             remoteUid = 0
             remoteTextureView = null
+        }
+    }
+
+    // Match duration timer
+    LaunchedEffect(state) {
+        if (state is DiscoveryState.Matched) {
+            while (true) {
+                kotlinx.coroutines.delay(1000)
+                callSeconds++
+            }
         }
     }
 
@@ -298,8 +316,21 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
             }
         }
         else {
-            // Dynamic Video Layout: Supports both Split Screen and Fullscreen PiP
-            Box(modifier = Modifier.fillMaxSize()) {
+            // Dynamic Video Layout: Supports both Split Screen and Fullscreen PiP with Double-Tap gestures
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(state) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                if (state is DiscoveryState.Matched) {
+                                    val partnerId = (state as DiscoveryState.Matched).match.partner.userId
+                                    viewModel.sendReaction(partnerId, "❤️")
+                                }
+                            }
+                        )
+                    }
+            ) {
                 if (!isFullscreenMode) {
                     // MODE 1: CLEAN 50-50 SPLIT SCREEN
                     Column(modifier = Modifier.fillMaxSize()) {
@@ -429,7 +460,7 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = 16.dp, top = 24.dp)
+                                .padding(start = 16.dp, top = 28.dp)
                                 .size(72.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black)
@@ -469,12 +500,44 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
 
                 // --- COMMON IN-CALL OVERLAYS & CONTROLS ---
 
+                // 1. Top-Center Live Call Duration Pill
+                if (state is DiscoveryState.Matched) {
+                    val mins = callSeconds / 60
+                    val secs = callSeconds % 60
+                    val timeStr = String.format("%02d:%02d", mins, secs)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 28.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0x880F172A))
+                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF00E676))
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = timeStr,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
                 // 2. Top Header: Bonus Button + Coins Balance
                 val currentCoinsVal by viewModel.currentCoins.collectAsState()
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(end = 16.dp, top = 24.dp),
+                        .padding(end = 16.dp, top = 28.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -664,50 +727,55 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                     floatingEmojis = floatingEmojis
                 )
 
-                // 5. Bottom Controls & Quick Reactions
+                // 5. Bottom Unified Capsule & Animated Emoji Popup
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Quick Emoji Reactions Bar (Only during active match)
-                    if (state is DiscoveryState.Matched) {
+                    // Animated Emoji Popup (Opens on tapping 😃)
+                    AnimatedVisibility(
+                        visible = showEmojiPicker && state is DiscoveryState.Matched,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { 20 }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { 20 })
+                    ) {
                         Row(
                             modifier = Modifier
-                                .padding(bottom = 12.dp)
+                                .padding(bottom = 10.dp)
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color(0x880F172A))
-                                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
-                                .padding(horizontal = 14.dp, vertical = 5.dp),
+                                .background(Color(0xEE0F172A))
+                                .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             com.videoChatting.echat.presentation.call.GiftCatalog.QUICK_REACTIONS.forEach { emoji ->
                                 Box(
                                     modifier = Modifier
-                                        .size(32.dp)
+                                        .size(34.dp)
                                         .clip(CircleShape)
                                         .clickable {
                                             val partnerId = (state as DiscoveryState.Matched).match.partner.userId
                                             viewModel.sendReaction(partnerId, emoji)
+                                            showEmojiPicker = false
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(text = emoji, fontSize = 18.sp)
+                                    Text(text = emoji, fontSize = 20.sp)
                                 }
                             }
                         }
                     }
 
-                    // Floating Controls Capsule - Matching Reactions Glass Overlay with Crisp Spacing
+                    // Single Clean Master Control Bar
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(28.dp))
                             .background(Color(0x880F172A))
                             .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(28.dp))
                             .padding(horizontal = 16.dp, vertical = 7.dp),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Mute Audio Button
@@ -717,10 +785,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .clip(CircleShape)
                                 .background(if (isMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
                                 .border(BorderStroke(1.dp, if (isMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
-                                .clickable {
-                                    isMuted = !isMuted
-                                    rtcEngine?.muteLocalAudioStream(isMuted)
-                                },
+                            .clickable {
+                                isMuted = !isMuted
+                                rtcEngine?.muteLocalAudioStream(isMuted)
+                            },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -735,10 +803,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         if (state is DiscoveryState.Matched) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(38.dp)
                                     .clip(CircleShape)
                                     .background(Color(0xFF261C4E))
-                                    .border(1.5.dp, Color(0xFFFFD700), CircleShape)
+                                    .border(1.2.dp, Color(0xFFFFD700), CircleShape)
                                     .clickable { showGiftBottomSheet = true },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -753,10 +821,10 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .clip(CircleShape)
                                 .background(if (isVideoMuted) NeonRose.copy(alpha = 0.25f) else Color(0x33FFFFFF), shape = CircleShape)
                                 .border(BorderStroke(1.dp, if (isVideoMuted) NeonRose else Color.White.copy(alpha = 0.2f)), CircleShape)
-                                .clickable {
-                                    isVideoMuted = !isVideoMuted
-                                    rtcEngine?.muteLocalVideoStream(isVideoMuted)
-                                },
+                            .clickable {
+                                isVideoMuted = !isVideoMuted
+                                rtcEngine?.muteLocalVideoStream(isVideoMuted)
+                            },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -766,6 +834,21 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 modifier = Modifier.size(19.dp)
                             )
                         }
+
+                        // 😃 Emoji Reaction Picker Button (Only during active match)
+                        if (state is DiscoveryState.Matched) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(if (showEmojiPicker) Color(0x669333EA) else Color(0x33FFFFFF), shape = CircleShape)
+                                    .border(BorderStroke(1.dp, if (showEmojiPicker) Color(0xFFFFD700) else Color.White.copy(alpha = 0.2f)), CircleShape)
+                                    .clickable { showEmojiPicker = !showEmojiPicker },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("😃", fontSize = 18.sp)
+                            }
+                        }
                         
                         // Next Person Button
                         Box(
@@ -774,9 +857,9 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                                 .clip(CircleShape)
                                 .background(if (state is DiscoveryState.Matched) Color(0x33FFFFFF) else Color(0x11FFFFFF), shape = CircleShape)
                                 .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), CircleShape)
-                                .clickable(enabled = state is DiscoveryState.Matched) {
-                                    viewModel.nextPerson()
-                                },
+                            .clickable(enabled = state is DiscoveryState.Matched) {
+                                viewModel.nextPerson()
+                            },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(

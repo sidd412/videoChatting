@@ -1,8 +1,6 @@
 package com.videoChatting.echat.presentation.auth
 
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,18 +14,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.videoChatting.echat.data.local.SessionManager
 import com.videoChatting.echat.presentation.theme.*
-
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.navigation.NavController
-import com.videoChatting.echat.presentation.navigation.Screen
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
@@ -38,6 +38,7 @@ fun AuthScreen(
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     var consentChecked by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     
     // Check if token already exists (auto-login)
     val sessionManager = remember { SessionManager(context) }
@@ -56,32 +57,41 @@ fun AuthScreen(
         }
     }
 
-    // Hardcoded Web Client ID (type 3 - server client) to avoid R8 resource stripping in release builds
+    // Credential Manager - modern Google Sign-In (handles Play App Signing correctly)
+    val credentialManager = remember { CredentialManager.create(context) }
     val webClientId = "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com"
 
-    // Google Sign-In settings
-    val gso = remember {
-        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestIdToken(webClientId)
-            .build()
-    }
-    val googleSignInClient = remember(gso) { GoogleSignIn.getClient(context, gso) }
+    val handleGoogleSignIn: () -> Unit = {
+        scope.launch {
+            try {
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .setAutoSelectEnabled(false)
+                    .build()
 
-    val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            val idToken = account?.idToken
-            if (idToken != null) {
-                viewModel.loginWithGoogle(idToken)
-            } else {
-                Toast.makeText(context, "Google identity token missing", Toast.LENGTH_SHORT).show()
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = context
+                )
+                val credential = result.credential
+                if (credential is CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    viewModel.loginWithGoogle(googleIdTokenCredential.idToken)
+                } else {
+                    Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: GetCredentialException) {
+                Toast.makeText(context, "Google Sign-In failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Sign-In error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            Toast.makeText(context, "Google Sign-In failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -167,10 +177,7 @@ fun AuthScreen(
             OutlinedButton(
                 onClick = {
                     if (consentChecked) {
-                        // Sign out first to always show Google account selection dialog
-                        googleSignInClient.signOut().addOnCompleteListener {
-                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
-                        }
+                        handleGoogleSignIn()
                     } else {
                         Toast.makeText(context, "Please agree to Terms and Privacy Policy first", Toast.LENGTH_SHORT).show()
                     }

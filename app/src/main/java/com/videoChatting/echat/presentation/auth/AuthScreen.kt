@@ -17,7 +17,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.videoChatting.echat.data.local.SessionManager
@@ -64,7 +66,6 @@ fun AuthScreen(
     val handleGoogleSignIn: () -> Unit = {
         scope.launch {
             try {
-                // filterByAuthorizedAccounts(false) = show all Google accounts on device
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
                     .setServerClientId(webClientId)
@@ -89,10 +90,19 @@ fun AuthScreen(
                 } else {
                     Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: GetCredentialCancellationException) {
+                // User closed the picker — do nothing, no error message needed
+            } catch (e: NoCredentialException) {
+                // Google Play Services not ready yet — ask user to retry
+                Toast.makeText(
+                    context,
+                    "Sign-In unavailable. Please wait a moment and try again.",
+                    Toast.LENGTH_LONG
+                ).show()
             } catch (e: GetCredentialException) {
-                Toast.makeText(context, "Google Sign-In failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Sign-In failed. Please try again.", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Toast.makeText(context, "Sign-In error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Unexpected error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }

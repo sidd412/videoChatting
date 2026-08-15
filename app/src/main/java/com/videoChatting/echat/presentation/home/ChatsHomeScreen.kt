@@ -40,6 +40,9 @@ data class DummyChat(
     val name: String, 
     val lastMessage: String, 
     val time: String, 
+    val timestamp: Long = 0L,
+    val isLastMessageMine: Boolean = false,
+    val isLastMessageRead: Boolean = false,
     val categories: List<String> = emptyList(),
     val unreadCount: Int = 0,
     val avatar: String = "",
@@ -265,24 +268,29 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(56.dp)
+            modifier = Modifier.size(52.dp)
         ) {
             if (chat.avatar.isNotEmpty()) {
                 AsyncImage(
                     model = chat.avatar,
                     contentDescription = "Profile",
-                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                    modifier = Modifier.size(52.dp).clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(52.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .background(Color(0xFF261C4E)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = chat.name.take(1).uppercase(),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 }
             }
             if (chat.unreadCount > 0) {
@@ -292,7 +300,7 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
                         .offset(x = 4.dp, y = (-4).dp)
                         .size(20.dp)
                         .clip(CircleShape)
-                        .background(Color.Red),
+                        .background(Color(0xFFEF4444)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -304,28 +312,69 @@ fun ChatItem(chat: DummyChat, onClick: () -> Unit) {
                 }
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
+
+        Spacer(modifier = Modifier.width(14.dp))
+
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = chat.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = chat.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = chat.time,
+                    fontSize = 11.sp,
+                    color = if (chat.unreadCount > 0) Color(0xFF38BDF8) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    fontWeight = if (chat.unreadCount > 0) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "It's a ${chat.lastMessage} profile",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                maxLines = 1,
-                fontSize = 13.sp,
-                overflow = TextOverflow.Ellipsis
-            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (chat.isLastMessageMine) {
+                    if (chat.isLastMessageRead) {
+                        // Double Blue Tick ✓✓
+                        Text(
+                            text = "✓✓",
+                            color = Color(0xFF38BDF8),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    } else {
+                        // Single Grey Tick ✓
+                        Text(
+                            text = "✓",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+                }
+                Text(
+                    text = chat.lastMessage,
+                    color = if (chat.unreadCount > 0) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    fontWeight = if (chat.unreadCount > 0) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 1,
+                    fontSize = 13.sp,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = chat.time,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-        )
     }
 }

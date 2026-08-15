@@ -81,12 +81,17 @@ class ChatsHomeViewModel @Inject constructor(
                 val response = apiService.getInteractions()
                 if (response.isSuccessful && response.body() != null) {
                     val list = response.body()!!.interactions.map { item ->
+                        val isMine = item.lastMessageSenderId == currentUserId
+                        val isRead = item.lastMessageReadStatus == true
                         DummyChat(
                             id = item.id,
                             name = item.name,
                             avatar = item.avatar,
                             lastMessage = item.lastMessage,
                             time = item.time,
+                            timestamp = item.timestamp ?: 0L,
+                            isLastMessageMine = isMine,
+                            isLastMessageRead = isRead,
                             categories = item.categories,
                             unreadCount = item.unreadCount,
                             isLiked = item.isLiked,

@@ -559,20 +559,15 @@ fun DiscoveryScreen(viewModel: DiscoveryViewModel = hiltViewModel()) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(cardBackground)
-                            .border(BorderStroke(1.dp, cardBorder), RoundedCornerShape(16.dp))
+                            .border(BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.4f)), RoundedCornerShape(16.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.MonetizationOn,
-                            contentDescription = "Coins",
-                            tint = CoinGold,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
+                        com.videoChatting.echat.presentation.components.TalksyCoinIcon(size = 15.dp)
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "$currentCoinsVal",
-                            color = Color.White,
+                            color = Color(0xFFFFD700),
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp
                         )

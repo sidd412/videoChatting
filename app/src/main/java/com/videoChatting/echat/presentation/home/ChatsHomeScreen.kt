@@ -87,10 +87,27 @@ fun ChatsHomeScreen(
                     title = { Text("Talksy", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                     actions = {
                         val currentCoins by viewModel.currentCoins.collectAsState()
-                        TextButton(onClick = { navController.navigate("wallet") }) {
-                            Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(currentCoins.toString(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color(0xFF261C4E),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.4f)),
+                            modifier = Modifier
+                                .clickable { navController.navigate("wallet") }
+                                .padding(end = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                com.videoChatting.echat.presentation.components.TalksyCoinIcon(size = 18.dp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = currentCoins.toString(),
+                                    color = Color(0xFFFFD700),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                         IconButton(onClick = { navController.navigate("consent_notifications") }) {
                             if (pendingConsentCount > 0) {

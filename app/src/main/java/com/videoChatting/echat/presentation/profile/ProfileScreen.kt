@@ -165,15 +165,21 @@ fun ProfileScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-//                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Coin Balance: ${userProfile?.coinsBalance ?: 0}", 
-                            fontSize = 12.sp,
-                            color = ElectricViolet,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 2.dp)
+                        ) {
+                            com.videoChatting.echat.presentation.components.TalksyCoinIcon(size = 14.dp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${userProfile?.coinsBalance ?: 0} Coins", 
+                                fontSize = 12.sp, 
+                                color = Color(0xFFFFD700), 
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
@@ -205,13 +211,13 @@ fun ProfileScreen(
                 HorizontalDivider(color = getThemeGlassBorder())
                 ProfileSettingsItem(
                     icon = Icons.Default.Share, 
-                    title = "Invite & Contacts (Get 50 🪙)",
+                    title = "Contacts & Invite (Get 50 🪙)",
                     onClick = { appNavController?.navigate(Screen.InviteAndContacts.route) }
                 )
                 HorizontalDivider(color = getThemeGlassBorder())
                 ProfileSettingsItem(
                     icon = Icons.Default.MonetizationOn, 
-                    title = "My Wallet",
+                    title = "Wallet & Rewards",
                     onClick = { appNavController?.navigate("wallet") }
                 )
                 HorizontalDivider(color = getThemeGlassBorder())

@@ -74,6 +74,14 @@ class WalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            socketManager.matchEvents.collect { event ->
+                if (event is com.videoChatting.echat.data.remote.SocketEvent.WalletUpdate) {
+                    _currentCoins.value = event.coinsBalance
+                    sessionManager.updateCoins(event.coinsBalance)
+                }
+            }
+        }
+        viewModelScope.launch {
             socketManager.userStatusEvents.collect { (userId, _) ->
                 val currentUser = sessionManager.getUserProfile()
                 if (currentUser?.userId == userId) {

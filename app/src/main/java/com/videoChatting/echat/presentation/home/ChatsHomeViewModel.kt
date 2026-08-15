@@ -41,8 +41,16 @@ class ChatsHomeViewModel @Inject constructor(
         
         viewModelScope.launch {
             socketManager.matchEvents.collect { event ->
-                if (event is SocketEvent.ConsentNotification) {
-                    loadInteractions()
+                when (event) {
+                    is SocketEvent.ConsentNotification -> loadInteractions()
+                    is SocketEvent.WalletUpdate -> {
+                        _currentCoins.value = event.coinsBalance
+                        val profile = sessionManager.getUserProfile()
+                        if (profile != null) {
+                            sessionManager.saveUserProfile(profile.copy(coinsBalance = event.coinsBalance))
+                        }
+                    }
+                    else -> {}
                 }
             }
         }
@@ -61,6 +69,20 @@ class ChatsHomeViewModel @Inject constructor(
         val currentUserId = userRepository.getCurrentUserId() ?: return
         
         _currentCoins.value = sessionManager.getUserProfile()?.coinsBalance ?: 0
+        
+        // Fetch fresh profile & balance in background
+        viewModelScope.launch {
+            try {
+                val profileRes = apiService.getSelfProfile()
+                if (profileRes.isSuccessful && profileRes.body() != null) {
+                    val freshUser = profileRes.body()!!.user
+                    sessionManager.saveUserProfile(freshUser)
+                    _currentCoins.value = freshUser.coinsBalance ?: 0
+                }
+            } catch (e: Exception) {
+                // Keep cached balance if offline
+            }
+        }
         
         // Load from cache first for offline support
         val cached = prefs.getString("interactions_$currentUserId", null)

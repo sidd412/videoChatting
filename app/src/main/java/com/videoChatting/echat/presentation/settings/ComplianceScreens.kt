@@ -278,44 +278,6 @@ fun AboutUsScreen(navController: NavController) {
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                val appSha1 = remember { com.videoChatting.echat.presentation.auth.getInstalledAppSha1(context) }
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, getThemeGlassBorder(), RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = getThemeGlassBackground())
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "App Signing SHA-1",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = getThemeTextColor()
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = appSha1,
-                            fontSize = 11.sp,
-                            color = getThemeSubTextColor(),
-                            lineHeight = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText("App SHA-1", appSha1)
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "SHA-1 copied to clipboard!", Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Copy SHA-1 Fingerprint", fontSize = 12.sp)
-                        }
-                    }
-                }
             }
         }
     }

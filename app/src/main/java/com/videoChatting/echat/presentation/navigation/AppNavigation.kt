@@ -35,6 +35,7 @@ sealed class Screen(val route: String) {
     object Theme : Screen("theme")
     object ConsentNotifications : Screen("consent_notifications")
     object Wallet : Screen("wallet")
+    object InviteAndContacts : Screen("invite_and_contacts")
 }
 
 @Composable
@@ -153,6 +154,14 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
         }
         composable(Screen.Wallet.route) {
             com.videoChatting.echat.presentation.wallet.WalletScreen(navController)
+        }
+        composable(Screen.InviteAndContacts.route) {
+            com.videoChatting.echat.presentation.contacts.InviteAndContactsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToChat = { userId ->
+                    navController.navigate(Screen.Chat.createRoute(userId, "Friend"))
+                }
+            )
         }
     }
 }

@@ -93,6 +93,25 @@ interface ApiService {
 
     @POST("rewards/spin")
     suspend fun spinLuckyWheel(): Response<com.videoChatting.echat.data.remote.model.SpinResponse>
+
+    // --- Contacts & Referral Endpoints ---
+    @GET("contacts/referral")
+    suspend fun getReferralInfo(): Response<com.videoChatting.echat.data.remote.model.ReferralInfoResponse>
+
+    @POST("contacts/referral/claim")
+    suspend fun claimReferralCode(
+        @Body request: com.videoChatting.echat.data.remote.model.ClaimReferralRequest
+    ): Response<com.videoChatting.echat.data.remote.model.ClaimReferralResponse>
+
+    @POST("contacts/sync")
+    suspend fun syncContacts(
+        @Body request: com.videoChatting.echat.data.remote.model.SyncContactsRequest
+    ): Response<com.videoChatting.echat.data.remote.model.SyncContactsResponse>
+
+    @POST("contacts/privacy")
+    suspend fun toggleContactsPrivacy(
+        @Body request: com.videoChatting.echat.data.remote.model.ToggleContactsPrivacyRequest
+    ): Response<com.videoChatting.echat.data.remote.model.ToggleContactsPrivacyResponse>
 }
 
 data class RaiseRequestDto(

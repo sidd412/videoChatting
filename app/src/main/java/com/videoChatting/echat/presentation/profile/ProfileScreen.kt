@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.History
@@ -200,6 +201,12 @@ fun ProfileScreen(
                     icon = Icons.Default.Tune, 
                     title = "Match Preferences",
                     onClick = { appNavController?.navigate(Screen.Preferences.route) }
+                )
+                HorizontalDivider(color = getThemeGlassBorder())
+                ProfileSettingsItem(
+                    icon = Icons.Default.Share, 
+                    title = "Invite & Contacts (Get 50 🪙)",
+                    onClick = { appNavController?.navigate(Screen.InviteAndContacts.route) }
                 )
                 HorizontalDivider(color = getThemeGlassBorder())
                 ProfileSettingsItem(

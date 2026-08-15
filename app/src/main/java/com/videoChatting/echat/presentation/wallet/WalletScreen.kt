@@ -174,7 +174,7 @@ fun WalletScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
                         androidx.compose.ui.graphics.Brush.horizontalGradient(
@@ -200,7 +200,7 @@ fun WalletScreen(
                                 color = Color.White
                             )
                             Text(
-                                text = "Free coins everyday + win up to 200 coins!",
+                                text = "Free coins everyday + lucky spin wheel!",
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
@@ -209,6 +209,52 @@ fun WalletScreen(
 
                     Text(
                         text = "Claim →",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+            }
+
+            // Viral Referral Banner: Invite Friends & Get 50 Free Coins
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            listOf(Color(0xFF065F46), Color(0xFF059669))
+                        )
+                    )
+                    .clickable { navController.navigate("invite_and_contacts") }
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎁", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Invite Friends & Earn Coins",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Get +50 free coins for every friend you invite!",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "Invite →",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFFFD700)

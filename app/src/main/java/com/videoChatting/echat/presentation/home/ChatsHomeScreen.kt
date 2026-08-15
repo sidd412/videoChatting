@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -83,6 +84,13 @@ fun ChatsHomeScreen(
                     title = { Text("Talksy", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
                     actions = {
                         val currentCoins by viewModel.currentCoins.collectAsState()
+                        IconButton(onClick = { navController.navigate("invite_and_contacts") }) {
+                            Icon(
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = "Invite Friends",
+                                tint = ElectricIndigo
+                            )
+                        }
                         TextButton(onClick = { navController.navigate("wallet") }) {
                             Icon(Icons.Default.MonetizationOn, contentDescription = "Wallet", tint = CoinGold)
                             Spacer(modifier = Modifier.width(4.dp))

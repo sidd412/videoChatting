@@ -83,6 +83,11 @@ interface ApiService {
     @GET("payment/history")
     suspend fun getPurchaseHistory(): Response<com.videoChatting.echat.presentation.wallet.PurchaseHistoryResponse>
 
+    @POST("payment/verify-play-purchase")
+    suspend fun verifyPlayPurchase(
+        @Body request: com.videoChatting.echat.data.remote.model.VerifyPlayPurchaseRequest
+    ): Response<com.videoChatting.echat.data.remote.model.VerifyPlayPurchaseResponse>
+
     @POST("requests")
     suspend fun raiseRequest(
         @Body request: com.videoChatting.echat.data.remote.RaiseRequestDto

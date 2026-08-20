@@ -1,5 +1,6 @@
 package com.videoChatting.echat.presentation.wallet
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,18 +12,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +30,7 @@ import com.videoChatting.echat.presentation.components.TalksyCoinIcon
 import com.videoChatting.echat.presentation.theme.*
 
 data class CoinPack(
+    val productId: String,
     val coins: Int,
     val priceInInr: Int,
     val badge: String? = null,
@@ -39,11 +38,11 @@ data class CoinPack(
 )
 
 val coinPacks = listOf(
-    CoinPack(50, 10, badge = "STARTER"),
-    CoinPack(100, 20, badge = "POPULAR"),
-    CoinPack(260, 49, badge = "🔥 BEST VALUE", bonusCoins = "+10 FREE"),
-    CoinPack(550, 99, badge = "⚡ SUPER SAVER", bonusCoins = "+50 FREE"),
-    CoinPack(2000, 149, badge = "💎 VIP PACK", bonusCoins = "+1000 FREE")
+    CoinPack("talksy_coins_50", 50, 10, badge = "STARTER"),
+    CoinPack("talksy_coins_100", 100, 20, badge = "POPULAR"),
+    CoinPack("talksy_coins_260", 260, 49, badge = "🔥 BEST VALUE", bonusCoins = "+10 FREE"),
+    CoinPack("talksy_coins_550", 550, 99, badge = "⚡ SUPER SAVER", bonusCoins = "+50 FREE"),
+    CoinPack("talksy_coins_2000", 2000, 149, badge = "💎 VIP PACK", bonusCoins = "+1000 FREE")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,56 +55,12 @@ fun WalletScreen(
     val isProcessingPayment by viewModel.isProcessingPayment.collectAsState()
     val paymentMessage by viewModel.paymentMessage.collectAsState()
     val paymentUrl by viewModel.paymentUrl.collectAsState()
+    val productDetailsMap by viewModel.playBillingManager.productDetailsMap.collectAsState()
 
-    val sdkPayload by viewModel.sdkPayload.collectAsState()
-    val context = androidx.compose.ui.platform.LocalContext.current
-
+    val context = LocalContext.current
     var showDailyRewardsSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(sdkPayload) {
-        sdkPayload?.let { payload ->
-            val activity = context as? android.app.Activity
-            if (activity != null) {
-                RazorpayPaymentResultHelper.onPaymentSuccess = { _, _ ->
-                    viewModel.onPaymentComplete(true)
-                    RazorpayPaymentResultHelper.clear()
-                }
-                RazorpayPaymentResultHelper.onPaymentError = { _, _, _ ->
-                    viewModel.onPaymentComplete(false)
-                    RazorpayPaymentResultHelper.clear()
-                }
-
-                try {
-                    com.razorpay.Checkout.preload(context.applicationContext)
-                    val checkout = com.razorpay.Checkout()
-                    val keyId = payload["key"] as? String
-                    if (keyId != null) {
-                        checkout.setKeyID(keyId)
-                    }
-
-                    val options = org.json.JSONObject()
-                    for (entry in payload.entries) {
-                        val key = entry.key
-                        val value = entry.value
-                        if (value is Map<*, *>) {
-                            options.put(key, org.json.JSONObject(value))
-                        } else {
-                            options.put(key, value)
-                        }
-                    }
-
-                    checkout.open(activity, options)
-                } catch (e: Exception) {
-                    viewModel.onPaymentComplete(false)
-                    RazorpayPaymentResultHelper.clear()
-                }
-            } else {
-                viewModel.dismissRazorpayCheckout()
-            }
-        }
-    }
-
-    // Keep WebView as fallback if paymentUrl is loaded
+    // Fallback if paymentUrl exists
     if (paymentUrl != null) {
         PaymentWebViewScreen(
             paymentUrl = paymentUrl!!,
@@ -404,7 +359,7 @@ fun WalletScreen(
                         color = Color.White
                     )
                     Text(
-                        text = "Instant ⚡ Safe Checkout",
+                        text = "Google Play ⚡ 1-Tap Pay",
                         fontSize = 11.sp,
                         color = Color(0xFF38BDF8),
                         fontWeight = FontWeight.Medium
@@ -416,7 +371,8 @@ fun WalletScreen(
                 item {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = if (paymentMessage.contains("Success", ignoreCase = true)) Color(0xFF065F46) else Color(0xFF7F1D1D),
+                        color = if (paymentMessage.contains("Success", ignoreCase = true) || paymentMessage.contains("🎉")) Color(0xFF065F46) else Color(0xFF1E293B),
+                        border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.5f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
@@ -430,12 +386,21 @@ fun WalletScreen(
                 }
             }
 
-            // 5. Coin Packs List
+            // 5. Coin Packs List with Google Play Billing
             items(coinPacks) { pack ->
+                val playDetails = productDetailsMap[pack.productId]
+                val formattedPrice = playDetails?.oneTimePurchaseOfferDetails?.formattedPrice ?: "₹${pack.priceInInr}"
+
                 PremiumCoinPackRow(
                     pack = pack,
+                    formattedPrice = formattedPrice,
                     isLoading = isProcessingPayment,
-                    onClick = { viewModel.initiatePayment(pack) }
+                    onClick = {
+                        val activity = context as? Activity
+                        if (activity != null) {
+                            viewModel.purchaseWithGooglePlay(activity, pack.productId)
+                        }
+                    }
                 )
             }
 
@@ -455,6 +420,7 @@ fun WalletScreen(
 @Composable
 fun PremiumCoinPackRow(
     pack: CoinPack,
+    formattedPrice: String,
     isLoading: Boolean,
     onClick: () -> Unit
 ) {
@@ -547,7 +513,7 @@ fun PremiumCoinPackRow(
                     )
                 } else {
                     Text(
-                        text = "₹${pack.priceInInr}",
+                        text = formattedPrice,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 15.sp
                     )

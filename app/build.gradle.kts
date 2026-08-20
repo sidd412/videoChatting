@@ -106,6 +106,9 @@ dependencies {
     // Razorpay Checkout SDK
     implementation("com.razorpay:checkout:1.6.36")
     
+    // Google Play In-App Billing
+    implementation("com.android.billingclient:billing-ktx:7.0.0")
+    
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

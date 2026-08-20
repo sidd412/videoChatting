@@ -1,10 +1,13 @@
 package com.videoChatting.echat.presentation.wallet
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.videoChatting.echat.data.billing.PlayBillingManager
 import com.videoChatting.echat.data.local.SessionManager
 import com.videoChatting.echat.data.remote.ApiService
 import com.videoChatting.echat.data.remote.SocketManager
+import com.videoChatting.echat.data.remote.model.VerifyPlayPurchaseRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +50,8 @@ data class PurchaseHistoryResponse(
 class WalletViewModel @Inject constructor(
     private val apiService: ApiService,
     private val sessionManager: SessionManager,
-    private val socketManager: SocketManager
+    private val socketManager: SocketManager,
+    val playBillingManager: PlayBillingManager
 ) : ViewModel() {
 
     private val _currentCoins = MutableStateFlow(sessionManager.getUserProfile()?.coinsBalance ?: 100)
@@ -59,20 +63,24 @@ class WalletViewModel @Inject constructor(
     private val _paymentMessage = MutableStateFlow("")
     val paymentMessage: StateFlow<String> = _paymentMessage
 
-    // Payment link for WebView
+    // Payment link for WebView fallback
     private val _paymentUrl = MutableStateFlow<String?>(null)
     val paymentUrl: StateFlow<String?> = _paymentUrl
 
     private val _sdkPayload = MutableStateFlow<Map<String, Any>?>(null)
     val sdkPayload: StateFlow<Map<String, Any>?> = _sdkPayload
 
-    // Keep track of the current order ID to verify it later
     private var currentOrderId: String? = null
 
     private val _purchaseHistory = MutableStateFlow<List<TransactionItem>>(emptyList())
     val purchaseHistory: StateFlow<List<TransactionItem>> = _purchaseHistory
 
     init {
+        // 1. Connect to Google Play Billing
+        playBillingManager.startConnection()
+        setupPlayBillingCallbacks()
+
+        // 2. Listen to real-time socket events
         viewModelScope.launch {
             socketManager.matchEvents.collect { event ->
                 if (event is com.videoChatting.echat.data.remote.SocketEvent.WalletUpdate) {
@@ -91,6 +99,66 @@ class WalletViewModel @Inject constructor(
         }
         fetchLatestProfile()
         fetchPurchaseHistory()
+    }
+
+    private fun setupPlayBillingCallbacks() {
+        playBillingManager.onPurchaseCompleted = { purchaseToken, orderId, productId ->
+            viewModelScope.launch {
+                _isProcessingPayment.value = true
+                _paymentMessage.value = "Verifying purchase with server..."
+                try {
+                    val request = VerifyPlayPurchaseRequest(
+                        purchaseToken = purchaseToken,
+                        productId = productId,
+                        orderId = orderId,
+                        packageName = "com.videoChatting.echat"
+                    )
+                    val response = apiService.verifyPlayPurchase(request)
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val body = response.body()!!
+                        if (body.coinsBalance != null) {
+                            _currentCoins.value = body.coinsBalance
+                            sessionManager.updateCoins(body.coinsBalance)
+                        }
+                        _paymentMessage.value = "🎉 " + body.message
+                        fetchLatestProfile()
+                        fetchPurchaseHistory()
+                        delay(2500)
+                        _paymentMessage.value = ""
+                    } else {
+                        _paymentMessage.value = "Verification failed: ${response.message()}"
+                        delay(2500)
+                        _paymentMessage.value = ""
+                    }
+                } catch (e: Exception) {
+                    _paymentMessage.value = "Verification error: ${e.localizedMessage}"
+                    delay(2500)
+                    _paymentMessage.value = ""
+                } finally {
+                    _isProcessingPayment.value = false
+                }
+            }
+        }
+
+        playBillingManager.onPurchaseFailed = { errorMessage ->
+            _paymentMessage.value = errorMessage
+            _isProcessingPayment.value = false
+            viewModelScope.launch {
+                delay(3000)
+                if (_paymentMessage.value == errorMessage) {
+                    _paymentMessage.value = ""
+                }
+            }
+        }
+    }
+
+    fun purchaseWithGooglePlay(activity: Activity, productId: String) {
+        _isProcessingPayment.value = true
+        _paymentMessage.value = "Opening Google Play..."
+        val success = playBillingManager.launchBillingFlow(activity, productId)
+        if (!success) {
+            _isProcessingPayment.value = false
+        }
     }
 
     fun fetchLatestProfile() {
@@ -119,39 +187,6 @@ class WalletViewModel @Inject constructor(
 
     fun isGuestUser(): Boolean {
         return sessionManager.getUserProfile()?.userId?.startsWith("guest_") == true
-    }
-
-    fun initiatePayment(pack: CoinPack) {
-        viewModelScope.launch {
-            _isProcessingPayment.value = true
-            _paymentMessage.value = "Creating secure payment..."
-
-            try {
-                val request = CreateOrderRequest(amount = pack.priceInInr, coins = pack.coins)
-                val response = apiService.createPaymentOrder(request)
-                
-                if (response.isSuccessful && response.body() != null) {
-                    val body = response.body()!!
-                    currentOrderId = body.orderId
-                    val payload = body.sdkPayload
-                    
-                    if (payload != null && payload.isNotEmpty()) {
-                        _paymentMessage.value = ""
-                        _sdkPayload.value = payload
-                    } else {
-                        _paymentMessage.value = "No payment options received"
-                        _isProcessingPayment.value = false
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                    _paymentMessage.value = "Failed to create order: $errorBody"
-                    _isProcessingPayment.value = false
-                }
-            } catch (e: Exception) {
-                _paymentMessage.value = "Payment Failed: ${e.message}"
-                _isProcessingPayment.value = false
-            }
-        }
     }
 
     fun dismissRazorpayCheckout() {

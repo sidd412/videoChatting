@@ -114,3 +114,17 @@ data class InteractionsResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("interactions") val interactions: List<InteractionUserDto>
 )
+
+data class VerifyPlayPurchaseRequest(
+    @SerializedName("purchaseToken") val purchaseToken: String,
+    @SerializedName("productId") val productId: String,
+    @SerializedName("orderId") val orderId: String? = null,
+    @SerializedName("packageName") val packageName: String? = null
+)
+
+data class VerifyPlayPurchaseResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("message") val message: String,
+    @SerializedName("coinsBalance") val coinsBalance: Int? = null
+)
+

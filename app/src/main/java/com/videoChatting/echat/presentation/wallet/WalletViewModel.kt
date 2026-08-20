@@ -46,6 +46,11 @@ data class PurchaseHistoryResponse(
     val transactions: List<TransactionItem>
 )
 
+data class PurchaseSuccessEvent(
+    val coinsAdded: Int,
+    val newBalance: Int
+)
+
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val apiService: ApiService,
@@ -57,13 +62,18 @@ class WalletViewModel @Inject constructor(
     private val _currentCoins = MutableStateFlow(sessionManager.getUserProfile()?.coinsBalance ?: 100)
     val currentCoins: StateFlow<Int> = _currentCoins
 
-    private val _isProcessingPayment = MutableStateFlow(false)
-    val isProcessingPayment: StateFlow<Boolean> = _isProcessingPayment
+    // Full-screen non-cancellable overlay during server verification
+    private val _isVerifyingPurchase = MutableStateFlow(false)
+    val isVerifyingPurchase: StateFlow<Boolean> = _isVerifyingPurchase
+
+    // Success popup dialog event
+    private val _purchaseSuccessEvent = MutableStateFlow<PurchaseSuccessEvent?>(null)
+    val purchaseSuccessEvent: StateFlow<PurchaseSuccessEvent?> = _purchaseSuccessEvent
 
     private val _paymentMessage = MutableStateFlow("")
     val paymentMessage: StateFlow<String> = _paymentMessage
 
-    // Payment link for WebView fallback
+    // Fallbacks
     private val _paymentUrl = MutableStateFlow<String?>(null)
     val paymentUrl: StateFlow<String?> = _paymentUrl
 
@@ -101,11 +111,22 @@ class WalletViewModel @Inject constructor(
         fetchPurchaseHistory()
     }
 
+    private fun getCoinsForProductId(productId: String): Int {
+        return when (productId) {
+            "talksy_coins_50" -> 50
+            "talksy_coins_100" -> 100
+            "talksy_coins_260" -> 260
+            "talksy_coins_550" -> 550
+            "talksy_coins_2000" -> 2000
+            else -> 50
+        }
+    }
+
     private fun setupPlayBillingCallbacks() {
         playBillingManager.onPurchaseCompleted = { purchaseToken, orderId, productId ->
             viewModelScope.launch {
-                _isProcessingPayment.value = true
-                _paymentMessage.value = "Verifying purchase with server..."
+                _isVerifyingPurchase.value = true
+                _paymentMessage.value = ""
                 try {
                     val request = VerifyPlayPurchaseRequest(
                         purchaseToken = purchaseToken,
@@ -116,49 +137,47 @@ class WalletViewModel @Inject constructor(
                     val response = apiService.verifyPlayPurchase(request)
                     if (response.isSuccessful && response.body()?.success == true) {
                         val body = response.body()!!
-                        if (body.coinsBalance != null) {
-                            _currentCoins.value = body.coinsBalance
-                            sessionManager.updateCoins(body.coinsBalance)
-                        }
-                        _paymentMessage.value = "🎉 " + body.message
+                        val coinsAdded = getCoinsForProductId(productId)
+                        val newBal = body.coinsBalance ?: ((_currentCoins.value) + coinsAdded)
+                        _currentCoins.value = newBal
+                        sessionManager.updateCoins(newBal)
+
                         fetchLatestProfile()
                         fetchPurchaseHistory()
-                        delay(2500)
-                        _paymentMessage.value = ""
+
+                        // Trigger animated celebratory success dialog
+                        _purchaseSuccessEvent.value = PurchaseSuccessEvent(coinsAdded, newBal)
                     } else {
                         _paymentMessage.value = "Verification failed: ${response.message()}"
-                        delay(2500)
-                        _paymentMessage.value = ""
                     }
                 } catch (e: Exception) {
                     _paymentMessage.value = "Verification error: ${e.localizedMessage}"
-                    delay(2500)
-                    _paymentMessage.value = ""
                 } finally {
-                    _isProcessingPayment.value = false
+                    _isVerifyingPurchase.value = false
                 }
             }
         }
 
         playBillingManager.onPurchaseFailed = { errorMessage ->
-            _paymentMessage.value = errorMessage
-            _isProcessingPayment.value = false
-            viewModelScope.launch {
-                delay(3000)
-                if (_paymentMessage.value == errorMessage) {
-                    _paymentMessage.value = ""
+            if (errorMessage != "Purchase canceled") {
+                _paymentMessage.value = errorMessage
+                viewModelScope.launch {
+                    delay(3500)
+                    if (_paymentMessage.value == errorMessage) {
+                        _paymentMessage.value = ""
+                    }
                 }
             }
         }
     }
 
     fun purchaseWithGooglePlay(activity: Activity, productId: String) {
-        _isProcessingPayment.value = true
-        _paymentMessage.value = "Opening Google Play..."
-        val success = playBillingManager.launchBillingFlow(activity, productId)
-        if (!success) {
-            _isProcessingPayment.value = false
-        }
+        _paymentMessage.value = ""
+        playBillingManager.launchBillingFlow(activity, productId)
+    }
+
+    fun dismissSuccessDialog() {
+        _purchaseSuccessEvent.value = null
     }
 
     fun fetchLatestProfile() {
@@ -191,50 +210,34 @@ class WalletViewModel @Inject constructor(
 
     fun dismissRazorpayCheckout() {
         _sdkPayload.value = null
-        _isProcessingPayment.value = false
     }
 
     fun onPaymentComplete(success: Boolean) {
         _sdkPayload.value = null
         _paymentUrl.value = null
         if (success && currentOrderId != null) {
-            _paymentMessage.value = "Verifying payment..."
+            _isVerifyingPurchase.value = true
             viewModelScope.launch {
                 try {
                     val response = apiService.verifyPayment(currentOrderId!!)
                     if (response.isSuccessful && response.body()?.success == true) {
-                        _paymentMessage.value = "Payment Successful! Coins Added."
                         fetchLatestProfile()
                         fetchPurchaseHistory()
-                        delay(2000)
-                        _isProcessingPayment.value = false
-                        _paymentMessage.value = ""
+                        _purchaseSuccessEvent.value = PurchaseSuccessEvent(50, _currentCoins.value)
                     } else {
                         _paymentMessage.value = "Payment Verification Failed"
-                        delay(2000)
-                        _isProcessingPayment.value = false
-                        _paymentMessage.value = ""
                     }
                 } catch (e: Exception) {
                     _paymentMessage.value = "Verification Error: ${e.message}"
-                    delay(2000)
-                    _isProcessingPayment.value = false
-                    _paymentMessage.value = ""
+                } finally {
+                    _isVerifyingPurchase.value = false
                 }
-            }
-        } else {
-            _paymentMessage.value = "Payment was not completed"
-            viewModelScope.launch {
-                delay(2000)
-                _isProcessingPayment.value = false
-                _paymentMessage.value = ""
             }
         }
     }
 
     fun dismissPaymentWebView() {
         _paymentUrl.value = null
-        _isProcessingPayment.value = false
         _paymentMessage.value = ""
     }
 }

@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.videoChatting.echat.presentation.components.TalksyCoinIcon
@@ -93,219 +92,275 @@ fun WalletScreen(
 
     var showDailyRewardsSheet by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Wallet & Rewards", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+    // ── Root Box so we can overlay the full-screen loader on top of Scaffold ──
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Wallet & Rewards", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = { if (!isVerifying) navController.navigateUp() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = CyberMidnight)
+                )
+            },
+            snackbarHost = {
+                SnackbarHost(snackbarHostState) { data ->
+                    Snackbar(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        containerColor = Color(0xFF2D2D44),
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text(data.visuals.message, fontWeight = FontWeight.Medium) }
+                }
+            },
+            containerColor = CyberMidnight
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding).background(CyberMidnight),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 1. Hero Balance Card
+                item { HeroBalanceCard(currentCoins) }
+
+                // 2. Earn Free Coins
+                item { SectionTitle("Earn Free Coins") }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        DailyBonusCard(onClick = { showDailyRewardsSheet = true })
+                        ContactsInviteCard(onClick = { navController.navigate("invite_and_contacts") })
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CyberMidnight)
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    containerColor = Color(0xFF2D2D44),
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(12.dp)
-                ) { Text(data.visuals.message, fontWeight = FontWeight.Medium) }
-            }
-        },
-        containerColor = CyberMidnight
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).background(CyberMidnight),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 1. Hero Balance Card
-            item { HeroBalanceCard(currentCoins) }
-
-            // 2. Earn Free Coins
-            item { SectionTitle("Earn Free Coins") }
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    DailyBonusCard(onClick = { showDailyRewardsSheet = true })
-                    ContactsInviteCard(onClick = { navController.navigate("invite_and_contacts") })
                 }
-            }
 
-            // 3. Recharge Section
-            item {
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 8.dp),
-                    Arrangement.SpaceBetween,
-                    Alignment.CenterVertically
-                ) {
-                    SectionTitle("Recharge Coins")
-                    Text("Google Play ⚡ 1-Tap Pay", fontSize = 11.sp, color = Color(0xFF38BDF8), fontWeight = FontWeight.Medium)
-                }
-            }
-
-            // 4. Coin Packs
-            items(coinPacks) { pack ->
-                val formatted = productDetailsMap[pack.productId]
-                    ?.oneTimePurchaseOfferDetails?.formattedPrice ?: "₹${pack.priceInInr}"
-                PremiumCoinPackRow(pack, formatted) {
-                    (context as? Activity)?.let { viewModel.purchaseWithGooglePlay(it, pack.productId) }
-                }
-            }
-
-            // 5. Purchase History Link
-            item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF16122E),
-                    border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f)),
-                    modifier = Modifier.fillMaxWidth().clickable { navController.navigate("purchase_history") }
-                ) {
+                // 3. Recharge Section
+                item {
                     Row(
-                        Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        Modifier.fillMaxWidth().padding(top = 8.dp),
                         Arrangement.SpaceBetween,
                         Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🧾", fontSize = 20.sp)
-                            Spacer(Modifier.width(10.dp))
-                            Column {
-                                Text("Purchase History", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("View receipts & download invoices", fontSize = 11.sp, color = Color.White.copy(0.55f))
+                        SectionTitle("Recharge Coins")
+                        Text("Google Play ⚡ 1-Tap Pay", fontSize = 11.sp, color = Color(0xFF38BDF8), fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                // 4. Coin Packs
+                items(coinPacks) { pack ->
+                    val formatted = productDetailsMap[pack.productId]
+                        ?.oneTimePurchaseOfferDetails?.formattedPrice ?: "₹${pack.priceInInr}"
+                    PremiumCoinPackRow(pack, formatted) {
+                        if (!isVerifying)
+                            (context as? Activity)?.let { viewModel.purchaseWithGooglePlay(it, pack.productId) }
+                    }
+                }
+
+                // 5. Purchase History Link
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF16122E),
+                        border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f)),
+                        modifier = Modifier.fillMaxWidth().clickable { navController.navigate("purchase_history") }
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            Arrangement.SpaceBetween,
+                            Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🧾", fontSize = 20.sp)
+                                Spacer(Modifier.width(10.dp))
+                                Column {
+                                    Text("Purchase History", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("View receipts & download invoices", fontSize = 11.sp, color = Color.White.copy(0.55f))
+                                }
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF38BDF8))
+                        }
+                    }
+                }
+
+                item { Spacer(Modifier.height(24.dp)) }
+            }
+        }
+
+        // ── Full-Screen Verification Overlay (TRUE full-screen, drawn above Scaffold) ──
+        if (isVerifying) {
+            BackHandler(true) { /* block back while verifying */ }
+
+            val inf = rememberInfiniteTransition(label = "overlay_anim")
+            val scale by inf.animateFloat(
+                initialValue = 0.88f, targetValue = 1.12f,
+                animationSpec = infiniteRepeatable(tween(800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                label = "coin_pulse"
+            )
+            val glowAlpha by inf.animateFloat(
+                initialValue = 0.4f, targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse),
+                label = "glow_pulse"
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF080512).copy(alpha = 0.97f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 40.dp)
+                ) {
+                    // Pulsing coin with golden ring
+                    Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+                        // Outer glow ring
+                        Box(
+                            modifier = Modifier
+                                .size(110.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFD700).copy(alpha = glowAlpha * 0.15f))
+                        )
+                        // Progress ring
+                        CircularProgressIndicator(
+                            color = Color(0xFFFFD700),
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.size(100.dp)
+                        )
+                        // Coin icon
+                        TalksyCoinIcon(size = 58.dp, modifier = Modifier.scale(scale))
+                    }
+
+                    Spacer(Modifier.height(28.dp))
+
+                    Text(
+                        "Securing Transaction...",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "Verifying with Google Play &\ncrediting coins to your wallet.",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Warning strip
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF7C3AED).copy(0.3f),
+                        border = BorderStroke(1.dp, Color(0xFF7C3AED).copy(0.5f))
+                    ) {
+                        Text(
+                            "⚠️ Please don't close or go back",
+                            color = Color(0xFFE9D5FF),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Success Dialog (inside root Box so it layers correctly) ──────────
+        successEvent?.let { evt ->
+            Dialog(onDismissRequest = { viewModel.dismissSuccessDialog() }) {
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF1E143E), Color(0xFF140D2B))))
+                        .border(1.5.dp, Brush.linearGradient(listOf(Color(0xFFFFD700), Color(0xFF7C3AED), Color(0xFF10B981))), RoundedCornerShape(28.dp))
+                        .padding(24.dp),
+                    Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(Brush.radialGradient(listOf(Color(0xFFFFD700).copy(0.3f), Color.Transparent))), contentAlignment = Alignment.Center) {
+                            TalksyCoinIcon(size = 58.dp)
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Text("🎉 Payment Successful!", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                        Spacer(Modifier.height(10.dp))
+                        Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFF065F46).copy(0.4f), border = BorderStroke(1.dp, Color(0xFF10B981).copy(0.6f))) {
+                            Text("+${evt.coinsAdded} Coins Added", color = Color(0xFF34D399), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Text("New Balance: ${evt.newBalance} Coins", color = Color(0xFFFFD700), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(24.dp))
+                        Button(
+                            onClick = { viewModel.dismissSuccessDialog() },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) { Text("Awesome! 🚀", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
+                    }
+                }
+            }
+        }
+
+        // ── Failure Dialog ─────────────────────────────────────────────────
+        failureEvent?.let { evt ->
+            val activity = context as? Activity
+            Dialog(onDismissRequest = { viewModel.dismissFailureDialog() }) {
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF2D0A0A), Color(0xFF1A0707))))
+                        .border(1.5.dp, Color(0xFFEF4444).copy(0.5f), RoundedCornerShape(28.dp))
+                        .padding(24.dp),
+                    Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier.size(70.dp).clip(CircleShape).background(Color(0xFF7F1D1D).copy(0.5f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Cancel, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(40.dp))
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Text("Payment Failed", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.height(10.dp))
+                        Text(evt.message, color = Color.White.copy(0.8f), fontSize = 13.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
+                        Spacer(Modifier.height(24.dp))
+                        if (evt.isRetryable) {
+                            Button(
+                                onClick = { if (activity != null) viewModel.retryPurchase(activity) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                                modifier = Modifier.fillMaxWidth().height(50.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Try Again", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Cancel", color = Color.White.copy(0.6f))
+                            }
+                        } else {
+                            Button(
+                                onClick = { viewModel.dismissFailureDialog() },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF374151)),
+                                modifier = Modifier.fillMaxWidth().height(50.dp)
+                            ) {
+                                Icon(Icons.Default.SupportAgent, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Contact Support", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Dismiss", color = Color.White.copy(0.6f))
                             }
                         }
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF38BDF8))
-                    }
-                }
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
-        }
-    }
-
-    // ── Full-Screen Verification Overlay ────────────────────────────────
-    if (isVerifying) {
-        BackHandler(true) { /* block back */ }
-        Dialog(
-            onDismissRequest = {},
-            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false)
-        ) {
-            val inf = rememberInfiniteTransition(label = "p")
-            val scale by inf.animateFloat(0.9f, 1.1f,
-                infiniteRepeatable(tween(750, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "s")
-
-            Box(Modifier.fillMaxSize().background(Color(0xFF0B071E).copy(0.95f)), Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-                    Box(Modifier.size(110.dp), Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFFFFD700), strokeWidth = 3.dp, modifier = Modifier.size(100.dp))
-                        TalksyCoinIcon(size = 54.dp, modifier = Modifier.scale(scale))
-                    }
-                    Spacer(Modifier.height(24.dp))
-                    Text("Securing Transaction...", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Verifying with Google Play & crediting coins.\nPlease don't close the app.",
-                        color = Color.White.copy(0.7f), fontSize = 13.sp, textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-    }
-
-    // ── Success Dialog ────────────────────────────────────────────────
-    successEvent?.let { evt ->
-        Dialog(onDismissRequest = { viewModel.dismissSuccessDialog() }) {
-            Box(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
-                    .background(Brush.verticalGradient(listOf(Color(0xFF1E143E), Color(0xFF140D2B))))
-                    .border(1.5.dp, Brush.linearGradient(listOf(Color(0xFFFFD700), Color(0xFF7C3AED), Color(0xFF10B981))), RoundedCornerShape(28.dp))
-                    .padding(24.dp),
-                Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(80.dp).clip(CircleShape).background(Brush.radialGradient(listOf(Color(0xFFFFD700).copy(0.3f), Color.Transparent))), Alignment.Center) {
-                        TalksyCoinIcon(size = 58.dp)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text("🎉 Payment Successful!", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(10.dp))
-                    Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFF065F46).copy(0.4f), border = BorderStroke(1.dp, Color(0xFF10B981).copy(0.6f))) {
-                        Text("+${evt.coinsAdded} Coins Added", color = Color(0xFF34D399), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Text("New Balance: ${evt.newBalance} Coins", color = Color(0xFFFFD700), fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(24.dp))
-                    Button(
-                        onClick = { viewModel.dismissSuccessDialog() },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) { Text("Awesome! 🚀", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
-                }
-            }
-        }
-    }
-
-    // ── Failure Dialog ────────────────────────────────────────────────
-    failureEvent?.let { evt ->
-        val activity = context as? Activity
-        Dialog(onDismissRequest = { viewModel.dismissFailureDialog() }) {
-            Box(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
-                    .background(Brush.verticalGradient(listOf(Color(0xFF2D0A0A), Color(0xFF1A0707))))
-                    .border(1.5.dp, Color(0xFFEF4444).copy(0.5f), RoundedCornerShape(28.dp))
-                    .padding(24.dp),
-                Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Icon
-                    Box(Modifier.size(70.dp).clip(CircleShape).background(Color(0xFF7F1D1D).copy(0.5f)), Alignment.Center) {
-                        Icon(Icons.Default.Cancel, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(40.dp))
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text("Payment Failed", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.height(10.dp))
-                    Text(evt.message, color = Color.White.copy(0.8f), fontSize = 13.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
-                    Spacer(Modifier.height(24.dp))
-
-                    if (evt.isRetryable) {
-                        Button(
-                            onClick = { if (activity != null) viewModel.retryPurchase(activity) },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
-                            modifier = Modifier.fillMaxWidth().height(50.dp)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Try Again", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Cancel", color = Color.White.copy(0.6f))
-                        }
-                    } else {
-                        Button(
-                            onClick = { viewModel.dismissFailureDialog() },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF374151)),
-                            modifier = Modifier.fillMaxWidth().height(50.dp)
-                        ) {
-                            Icon(Icons.Default.SupportAgent, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Contact Support", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Dismiss", color = Color.White.copy(0.6f))
-                        }
                     }
                 }
             }
         }
-    }
+
+    } // end Root Box
 
     if (showDailyRewardsSheet) {
         com.videoChatting.echat.presentation.rewards.DailyRewardsBottomSheet(onDismiss = { showDailyRewardsSheet = false })

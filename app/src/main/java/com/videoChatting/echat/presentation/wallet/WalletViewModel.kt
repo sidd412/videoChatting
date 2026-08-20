@@ -154,10 +154,12 @@ class WalletViewModel @Inject constructor(
         }
 
         playBillingManager.onPurchaseFailed = { errorMessage ->
+            // Always dismiss overlay first
+            _isVerifyingPurchase.value = false
             when {
                 errorMessage.contains("cancel", ignoreCase = true) ||
                 errorMessage.contains("USER_CANCELED", ignoreCase = true) -> {
-                    // User dismissed the Play sheet — just show a snackbar, no dialog
+                    // User dismissed the Play sheet — brief snackbar, no dialog
                     viewModelScope.launch {
                         _showCancelSnackbar.value = true
                         delay(2500)
@@ -165,7 +167,6 @@ class WalletViewModel @Inject constructor(
                     }
                 }
                 errorMessage.contains("ITEM_ALREADY_OWNED", ignoreCase = true) -> {
-                    // Consumable not consumed — rare edge case; tell them to retry
                     _purchaseFailureEvent.value = PurchaseFailureEvent(
                         message = "Previous purchase not yet processed. Please wait a moment and try again.",
                         isRetryable = true,
@@ -187,6 +188,9 @@ class WalletViewModel @Inject constructor(
 
     fun purchaseWithGooglePlay(activity: Activity, productId: String) {
         lastAttemptedProductId = productId
+        // Show overlay immediately — it sits behind the Play sheet and becomes
+        // visible the moment the sheet closes (whether success, pending, or fail).
+        _isVerifyingPurchase.value = true
         playBillingManager.launchBillingFlow(activity, productId)
     }
 

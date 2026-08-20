@@ -115,42 +115,62 @@ class PlayBillingManager @Inject constructor(
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
-        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            for (purchase in purchases) {
-                handlePurchase(purchase)
+        when (billingResult.responseCode) {
+            BillingClient.BillingResponseCode.OK -> {
+                purchases?.forEach { handlePurchase(it) }
             }
-        } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-            Log.d(TAG, "User canceled Google Play purchase flow")
-            onPurchaseFailed?.invoke("Purchase canceled")
-        } else {
-            Log.e(TAG, "Purchase failed: ${billingResult.debugMessage} (code ${billingResult.responseCode})")
-            onPurchaseFailed?.invoke("Payment failed: ${billingResult.debugMessage}")
+            BillingClient.BillingResponseCode.USER_CANCELED -> {
+                Log.d(TAG, "User canceled Google Play purchase flow")
+                onPurchaseFailed?.invoke("Purchase canceled")
+            }
+            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+                // Pending or already-owned item — try to process any existing purchases
+                Log.w(TAG, "Item already owned — checking existing purchases")
+                queryExistingPurchases()
+            }
+            else -> {
+                Log.e(TAG, "Purchase failed: ${billingResult.debugMessage} (code ${billingResult.responseCode})")
+                onPurchaseFailed?.invoke("Payment failed: ${billingResult.debugMessage}")
+            }
         }
     }
 
     private fun handlePurchase(purchase: Purchase) {
-        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            val productId = purchase.products.firstOrNull() ?: "talksy_coins_50"
-            val purchaseToken = purchase.purchaseToken
-            val orderId = purchase.orderId
+        when (purchase.purchaseState) {
+            Purchase.PurchaseState.PURCHASED -> {
+                val productId = purchase.products.firstOrNull() ?: "talksy_coins_50"
+                val purchaseToken = purchase.purchaseToken
+                val orderId = purchase.orderId
 
-            Log.d(TAG, "Purchase successful for $productId, consuming token...")
+                Log.d(TAG, "Purchase PURCHASED for $productId, consuming...")
 
-            // Consumable in-app purchase: Consume so user can purchase again
-            val consumeParams = ConsumeParams.newBuilder()
-                .setPurchaseToken(purchaseToken)
-                .build()
+                // Consume so the user can buy the same product again
+                val consumeParams = ConsumeParams.newBuilder()
+                    .setPurchaseToken(purchaseToken)
+                    .build()
 
-            billingClient.consumeAsync(consumeParams) { billingResult, _ ->
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    Log.d(TAG, "Successfully consumed purchase $productId")
-                } else {
-                    Log.w(TAG, "Failed to consume purchase: ${billingResult.debugMessage}")
+                billingClient.consumeAsync(consumeParams) { billingResult, _ ->
+                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                        Log.d(TAG, "Successfully consumed $productId")
+                    } else {
+                        Log.w(TAG, "Failed to consume: ${billingResult.debugMessage}")
+                    }
                 }
-            }
 
-            // Notify ViewModel to credit coins on backend
-            onPurchaseCompleted?.invoke(purchaseToken, orderId, productId)
+                // Notify ViewModel to credit coins via backend
+                onPurchaseCompleted?.invoke(purchaseToken, orderId, productId)
+            }
+            Purchase.PurchaseState.PENDING -> {
+                // Slow test card or UPI pending — Google will call onPurchasesUpdated again
+                // once it transitions to PURCHASED. Keep overlay visible (do nothing here).
+                val productId = purchase.products.firstOrNull() ?: ""
+                Log.d(TAG, "Purchase PENDING for $productId — waiting for Google Play to confirm...")
+                // Don't call onPurchaseFailed — the overlay should stay up
+            }
+            else -> {
+                Log.w(TAG, "Unhandled purchase state: ${purchase.purchaseState}")
+                onPurchaseFailed?.invoke("Purchase could not be verified. Please try again.")
+            }
         }
     }
 

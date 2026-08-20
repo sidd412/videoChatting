@@ -132,7 +132,17 @@ fun AppNavigation(navController: NavHostController, intent: Intent?) {
             com.videoChatting.echat.presentation.settings.BuyMinutesScreen(navController)
         }
         composable(Screen.PurchaseHistory.route) {
-            com.videoChatting.echat.presentation.wallet.MyPurchasesScreen(navController)
+            com.videoChatting.echat.presentation.wallet.PurchaseHistoryScreen(navController)
+        }
+        composable("purchase_history") {
+            com.videoChatting.echat.presentation.wallet.PurchaseHistoryScreen(navController)
+        }
+        composable(
+            route = "invoice_detail/{orderId}",
+            arguments = listOf(androidx.navigation.navArgument("orderId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: return@composable
+            com.videoChatting.echat.presentation.wallet.InvoiceDetailScreen(orderId = orderId, navController = navController)
         }
         composable(Screen.Notifications.route) {
             com.videoChatting.echat.presentation.settings.PlaceholderScreen(navController, "Notification Settings")

@@ -88,6 +88,11 @@ interface ApiService {
         @Body request: com.videoChatting.echat.data.remote.model.VerifyPlayPurchaseRequest
     ): Response<com.videoChatting.echat.data.remote.model.VerifyPlayPurchaseResponse>
 
+    @GET("payment/invoice/{orderId}")
+    suspend fun getInvoice(
+        @Path("orderId") orderId: String
+    ): Response<com.videoChatting.echat.data.remote.model.InvoiceResponse>
+
     @POST("requests")
     suspend fun raiseRequest(
         @Body request: com.videoChatting.echat.data.remote.RaiseRequestDto

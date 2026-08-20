@@ -128,3 +128,23 @@ data class VerifyPlayPurchaseResponse(
     @SerializedName("coinsBalance") val coinsBalance: Int? = null
 )
 
+data class InvoiceData(
+    @SerializedName("invoiceNumber") val invoiceNumber: String,
+    @SerializedName("orderId") val orderId: String,
+    @SerializedName("productId") val productId: String,
+    @SerializedName("productLabel") val productLabel: String,
+    @SerializedName("coins") val coins: Int,
+    @SerializedName("amountInr") val amountInr: Int,
+    @SerializedName("status") val status: String,
+    @SerializedName("paymentMethod") val paymentMethod: String,
+    @SerializedName("issuedAt") val issuedAt: String,
+    @SerializedName("buyerName") val buyerName: String,
+    @SerializedName("buyerEmail") val buyerEmail: String,
+    @SerializedName("appName") val appName: String,
+    @SerializedName("appVersion") val appVersion: String
+)
+
+data class InvoiceResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("invoice") val invoice: InvoiceData? = null
+)

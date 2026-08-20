@@ -15,41 +15,39 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class CreateOrderRequest(
-    val amount: Int,
-    val coins: Int
-)
+// ---------- Shared Data Classes ----------
 
+data class CreateOrderRequest(val amount: Int, val coins: Int)
 data class CreateOrderResponse(
     val success: Boolean,
     val orderId: String,
     val paymentLink: String?,
     val sdkPayload: Map<String, Any>?
 )
-
-data class VerifyPaymentResponse(
-    val success: Boolean,
-    val status: String,
-    val message: String?
-)
+data class VerifyPaymentResponse(val success: Boolean, val status: String, val message: String?)
 
 data class TransactionItem(
     val orderId: String,
+    val productId: String? = null,
     val amount: Int,
     val coins: Int,
     val status: String,
     val createdAt: String
 )
+data class PurchaseHistoryResponse(val success: Boolean, val transactions: List<TransactionItem>)
 
-data class PurchaseHistoryResponse(
-    val success: Boolean,
-    val transactions: List<TransactionItem>
+/** Fired when a purchase fully succeeds (server-verified). */
+data class PurchaseSuccessEvent(val coinsAdded: Int, val newBalance: Int)
+
+/** Fired when billing or server-verification fails. */
+data class PurchaseFailureEvent(
+    val message: String,
+    val isRetryable: Boolean,
+    /** Stored so UI can retry the same product */
+    val lastProductId: String? = null
 )
 
-data class PurchaseSuccessEvent(
-    val coinsAdded: Int,
-    val newBalance: Int
-)
+// ---------- ViewModel ----------
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
@@ -62,35 +60,42 @@ class WalletViewModel @Inject constructor(
     private val _currentCoins = MutableStateFlow(sessionManager.getUserProfile()?.coinsBalance ?: 100)
     val currentCoins: StateFlow<Int> = _currentCoins
 
-    // Full-screen non-cancellable overlay during server verification
+    /** TRUE while we are calling the server to verify a purchase. Blocks back navigation. */
     private val _isVerifyingPurchase = MutableStateFlow(false)
     val isVerifyingPurchase: StateFlow<Boolean> = _isVerifyingPurchase
 
-    // Success popup dialog event
+    /** Non-null → show celebratory success dialog. */
     private val _purchaseSuccessEvent = MutableStateFlow<PurchaseSuccessEvent?>(null)
     val purchaseSuccessEvent: StateFlow<PurchaseSuccessEvent?> = _purchaseSuccessEvent
 
-    private val _paymentMessage = MutableStateFlow("")
-    val paymentMessage: StateFlow<String> = _paymentMessage
+    /** Non-null → show failure dialog. Contains retry info. */
+    private val _purchaseFailureEvent = MutableStateFlow<PurchaseFailureEvent?>(null)
+    val purchaseFailureEvent: StateFlow<PurchaseFailureEvent?> = _purchaseFailureEvent
 
-    // Fallbacks
-    private val _paymentUrl = MutableStateFlow<String?>(null)
-    val paymentUrl: StateFlow<String?> = _paymentUrl
-
-    private val _sdkPayload = MutableStateFlow<Map<String, Any>?>(null)
-    val sdkPayload: StateFlow<Map<String, Any>?> = _sdkPayload
-
-    private var currentOrderId: String? = null
+    /** TRUE for ~2 seconds → show "Purchase canceled" snackbar. */
+    private val _showCancelSnackbar = MutableStateFlow(false)
+    val showCancelSnackbar: StateFlow<Boolean> = _showCancelSnackbar
 
     private val _purchaseHistory = MutableStateFlow<List<TransactionItem>>(emptyList())
     val purchaseHistory: StateFlow<List<TransactionItem>> = _purchaseHistory
 
+    private val _isHistoryLoading = MutableStateFlow(false)
+    val isHistoryLoading: StateFlow<Boolean> = _isHistoryLoading
+
+    /** Fallbacks for Razorpay/WebView path (kept for compatibility). */
+    private val _paymentUrl = MutableStateFlow<String?>(null)
+    val paymentUrl: StateFlow<String?> = _paymentUrl
+    private val _sdkPayload = MutableStateFlow<Map<String, Any>?>(null)
+    val sdkPayload: StateFlow<Map<String, Any>?> = _sdkPayload
+    private var currentOrderId: String? = null
+
+    /** Remembers the last attempted productId so we can retry. */
+    private var lastAttemptedProductId: String? = null
+
     init {
-        // 1. Connect to Google Play Billing
         playBillingManager.startConnection()
         setupPlayBillingCallbacks()
 
-        // 2. Listen to real-time socket events
         viewModelScope.launch {
             socketManager.matchEvents.collect { event ->
                 if (event is com.videoChatting.echat.data.remote.SocketEvent.WalletUpdate) {
@@ -99,59 +104,49 @@ class WalletViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            socketManager.userStatusEvents.collect { (userId, _) ->
-                val currentUser = sessionManager.getUserProfile()
-                if (currentUser?.userId == userId) {
-                    fetchLatestProfile()
-                }
-            }
-        }
         fetchLatestProfile()
         fetchPurchaseHistory()
     }
 
-    private fun getCoinsForProductId(productId: String): Int {
-        return when (productId) {
-            "talksy_coins_50" -> 50
-            "talksy_coins_100" -> 100
-            "talksy_coins_260" -> 260
-            "talksy_coins_550" -> 550
-            "talksy_coins_2000" -> 2000
-            else -> 50
-        }
-    }
+    // ---------- Google Play Billing Setup ----------
 
     private fun setupPlayBillingCallbacks() {
         playBillingManager.onPurchaseCompleted = { purchaseToken, orderId, productId ->
             viewModelScope.launch {
                 _isVerifyingPurchase.value = true
-                _paymentMessage.value = ""
                 try {
-                    val request = VerifyPlayPurchaseRequest(
-                        purchaseToken = purchaseToken,
-                        productId = productId,
-                        orderId = orderId,
-                        packageName = "com.videoChatting.echat"
+                    val response = apiService.verifyPlayPurchase(
+                        VerifyPlayPurchaseRequest(
+                            purchaseToken = purchaseToken,
+                            productId = productId,
+                            orderId = orderId,
+                            packageName = "com.videoChatting.echat"
+                        )
                     )
-                    val response = apiService.verifyPlayPurchase(request)
                     if (response.isSuccessful && response.body()?.success == true) {
                         val body = response.body()!!
-                        val coinsAdded = getCoinsForProductId(productId)
-                        val newBal = body.coinsBalance ?: ((_currentCoins.value) + coinsAdded)
+                        val coinsAdded = coinsForProductId(productId)
+                        val newBal = body.coinsBalance ?: (_currentCoins.value + coinsAdded)
                         _currentCoins.value = newBal
                         sessionManager.updateCoins(newBal)
-
                         fetchLatestProfile()
                         fetchPurchaseHistory()
-
-                        // Trigger animated celebratory success dialog
                         _purchaseSuccessEvent.value = PurchaseSuccessEvent(coinsAdded, newBal)
                     } else {
-                        _paymentMessage.value = "Verification failed: ${response.message()}"
+                        // Server rejected — non-retryable (token issue)
+                        _purchaseFailureEvent.value = PurchaseFailureEvent(
+                            message = "Payment verified by Google but our server couldn't process it. Please contact support.",
+                            isRetryable = false,
+                            lastProductId = productId
+                        )
                     }
                 } catch (e: Exception) {
-                    _paymentMessage.value = "Verification error: ${e.localizedMessage}"
+                    // Network error — retryable
+                    _purchaseFailureEvent.value = PurchaseFailureEvent(
+                        message = "Network error while verifying your purchase. Your payment is safe — tap Retry to credit your coins.",
+                        isRetryable = true,
+                        lastProductId = productId
+                    )
                 } finally {
                     _isVerifyingPurchase.value = false
                 }
@@ -159,26 +154,50 @@ class WalletViewModel @Inject constructor(
         }
 
         playBillingManager.onPurchaseFailed = { errorMessage ->
-            if (errorMessage != "Purchase canceled") {
-                _paymentMessage.value = errorMessage
-                viewModelScope.launch {
-                    delay(3500)
-                    if (_paymentMessage.value == errorMessage) {
-                        _paymentMessage.value = ""
+            when {
+                errorMessage.contains("cancel", ignoreCase = true) ||
+                errorMessage.contains("USER_CANCELED", ignoreCase = true) -> {
+                    // User dismissed the Play sheet — just show a snackbar, no dialog
+                    viewModelScope.launch {
+                        _showCancelSnackbar.value = true
+                        delay(2500)
+                        _showCancelSnackbar.value = false
                     }
+                }
+                errorMessage.contains("ITEM_ALREADY_OWNED", ignoreCase = true) -> {
+                    // Consumable not consumed — rare edge case; tell them to retry
+                    _purchaseFailureEvent.value = PurchaseFailureEvent(
+                        message = "Previous purchase not yet processed. Please wait a moment and try again.",
+                        isRetryable = true,
+                        lastProductId = lastAttemptedProductId
+                    )
+                }
+                else -> {
+                    _purchaseFailureEvent.value = PurchaseFailureEvent(
+                        message = errorMessage.ifBlank { "Payment could not be completed. Please try again." },
+                        isRetryable = true,
+                        lastProductId = lastAttemptedProductId
+                    )
                 }
             }
         }
     }
 
+    // ---------- Public Actions ----------
+
     fun purchaseWithGooglePlay(activity: Activity, productId: String) {
-        _paymentMessage.value = ""
+        lastAttemptedProductId = productId
         playBillingManager.launchBillingFlow(activity, productId)
     }
 
-    fun dismissSuccessDialog() {
-        _purchaseSuccessEvent.value = null
+    fun retryPurchase(activity: Activity) {
+        val productId = _purchaseFailureEvent.value?.lastProductId ?: return
+        _purchaseFailureEvent.value = null
+        purchaseWithGooglePlay(activity, productId)
     }
+
+    fun dismissSuccessDialog() { _purchaseSuccessEvent.value = null }
+    fun dismissFailureDialog() { _purchaseFailureEvent.value = null }
 
     fun fetchLatestProfile() {
         viewModelScope.launch {
@@ -195,23 +214,23 @@ class WalletViewModel @Inject constructor(
 
     fun fetchPurchaseHistory() {
         viewModelScope.launch {
+            _isHistoryLoading.value = true
             try {
                 val response = apiService.getPurchaseHistory()
                 if (response.isSuccessful && response.body() != null) {
                     _purchaseHistory.value = response.body()!!.transactions
                 }
-            } catch (_: Exception) { }
+            } catch (_: Exception) { } finally {
+                _isHistoryLoading.value = false
+            }
         }
     }
 
-    fun isGuestUser(): Boolean {
-        return sessionManager.getUserProfile()?.userId?.startsWith("guest_") == true
-    }
+    fun isGuestUser(): Boolean =
+        sessionManager.getUserProfile()?.userId?.startsWith("guest_") == true
 
-    fun dismissRazorpayCheckout() {
-        _sdkPayload.value = null
-    }
-
+    // ---------- Razorpay compat (legacy) ----------
+    fun dismissRazorpayCheckout() { _sdkPayload.value = null }
     fun onPaymentComplete(success: Boolean) {
         _sdkPayload.value = null
         _paymentUrl.value = null
@@ -225,19 +244,25 @@ class WalletViewModel @Inject constructor(
                         fetchPurchaseHistory()
                         _purchaseSuccessEvent.value = PurchaseSuccessEvent(50, _currentCoins.value)
                     } else {
-                        _paymentMessage.value = "Payment Verification Failed"
+                        _purchaseFailureEvent.value = PurchaseFailureEvent("Payment Verification Failed", false)
                     }
                 } catch (e: Exception) {
-                    _paymentMessage.value = "Verification Error: ${e.message}"
+                    _purchaseFailureEvent.value = PurchaseFailureEvent("Verification Error: ${e.message}", true)
                 } finally {
                     _isVerifyingPurchase.value = false
                 }
             }
         }
     }
+    fun dismissPaymentWebView() { _paymentUrl.value = null }
 
-    fun dismissPaymentWebView() {
-        _paymentUrl.value = null
-        _paymentMessage.value = ""
+    // ---------- Helpers ----------
+    private fun coinsForProductId(productId: String) = when (productId) {
+        "talksy_coins_50" -> 50
+        "talksy_coins_100" -> 100
+        "talksy_coins_260" -> 260
+        "talksy_coins_550" -> 550
+        "talksy_coins_2000" -> 2000
+        else -> 50
     }
 }

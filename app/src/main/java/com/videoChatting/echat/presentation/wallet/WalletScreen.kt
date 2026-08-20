@@ -158,32 +158,6 @@ fun WalletScreen(
                     }
                 }
 
-                // 5. Purchase History Link
-                item {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF16122E),
-                        border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f)),
-                        modifier = Modifier.fillMaxWidth().clickable { navController.navigate("purchase_history") }
-                    ) {
-                        Row(
-                            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                            Arrangement.SpaceBetween,
-                            Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("🧾", fontSize = 20.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Column {
-                                    Text("Purchase History", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                    Text("View receipts & download invoices", fontSize = 11.sp, color = Color.White.copy(0.55f))
-                                }
-                            }
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF38BDF8))
-                        }
-                    }
-                }
-
                 item { Spacer(Modifier.height(24.dp)) }
             }
         }

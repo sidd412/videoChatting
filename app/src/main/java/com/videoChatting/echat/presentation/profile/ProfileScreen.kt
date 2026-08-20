@@ -14,7 +14,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -220,11 +220,54 @@ fun ProfileScreen(
                     title = "Wallet & Rewards",
                     onClick = { appNavController?.navigate("wallet") }
                 )
-                HorizontalDivider(color = getThemeGlassBorder())
-                ProfileSettingsItem(
-                    icon = Icons.Default.History, 
-                    title = "My Purchases",
-                    onClick = { appNavController?.navigate(Screen.PurchaseHistory.route) }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Purchase History Block
+        androidx.compose.material3.Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            color = getThemeGlassBackground(),
+            border = androidx.compose.foundation.BorderStroke(1.dp, getThemeGlassBorder()),
+            modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+                .clickable { appNavController?.navigate("purchase_history") }
+        ) {
+            androidx.compose.foundation.layout.Row(
+                modifier = androidx.compose.ui.Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    androidx.compose.material3.Surface(
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        color = androidx.compose.ui.graphics.Color(0xFF7C3AED).copy(alpha = 0.18f)
+                    ) {
+                        Text(
+                            "🧾",
+                            fontSize = 22.sp,
+                            modifier = androidx.compose.ui.Modifier.padding(10.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            "Purchase History",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = getThemeTextColor()
+                        )
+                        Text(
+                            "View receipts & download invoices",
+                            fontSize = 11.sp,
+                            color = getThemeSubTextColor()
+                        )
+                    }
+                }
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = getThemeSubTextColor()
                 )
             }
         }

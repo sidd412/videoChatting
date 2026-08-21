@@ -283,56 +283,95 @@ fun WalletScreen(
             val activity = context as? Activity
             Dialog(onDismissRequest = { viewModel.dismissFailureDialog() }) {
                 Box(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
-                        .background(Brush.verticalGradient(listOf(Color(0xFF2D0A0A), Color(0xFF1A0707))))
-                        .border(1.5.dp, Color(0xFFEF4444).copy(0.5f), RoundedCornerShape(28.dp))
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF1A1535), Color(0xFF120E28))))
+                        .border(1.dp, Color(0xFF7C3AED).copy(0.35f), RoundedCornerShape(24.dp))
                         .padding(24.dp),
                     Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(70.dp).clip(CircleShape).background(Color(0xFF7F1D1D).copy(0.5f)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Cancel, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(40.dp))
+                        // Icon — amber/orange, not red
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF59E0B).copy(0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("⚠️", fontSize = 30.sp)
                         }
-                        Spacer(Modifier.height(16.dp))
-                        Text("Payment Failed", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                        Spacer(Modifier.height(10.dp))
-                        Text(evt.message, color = Color.White.copy(0.8f), fontSize = 13.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(14.dp))
+
+                        Text(
+                            "Payment Unsuccessful",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(8.dp))
+
+                        // Clean, friendly message — strip ugly Google error codes
+                        val friendlyMessage = when {
+                            evt.message.contains("OR-FGEMF", ignoreCase = true) ||
+                            evt.message.contains("declined", ignoreCase = true) ->
+                                "Your payment was declined by the bank or payment provider. Please check your payment method and try again."
+                            evt.message.contains("cancel", ignoreCase = true) ->
+                                "Payment was cancelled. You can try again anytime."
+                            evt.message.contains("already owned", ignoreCase = true) ->
+                                "A previous purchase is still being processed. Please wait a moment and try again."
+                            evt.message.contains("network", ignoreCase = true) ||
+                            evt.message.contains("connection", ignoreCase = true) ->
+                                "Network issue detected. Please check your internet connection and retry."
+                            else -> "Something went wrong with your payment. Please try again."
+                        }
+                        Text(
+                            friendlyMessage,
+                            color = Color.White.copy(0.65f),
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        )
+
+                        Spacer(Modifier.height(22.dp))
+
                         if (evt.isRetryable) {
+                            // Primary: Try Again — indigo/purple (theme)
                             Button(
                                 onClick = { if (activity != null) viewModel.retryPurchase(activity) },
                                 shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D28D9)),
                                 modifier = Modifier.fillMaxWidth().height(50.dp)
                             ) {
-                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("Try Again", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                                Text("Try Again", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }
-                            Spacer(Modifier.height(10.dp))
-                            TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
-                                Text("Cancel", color = Color.White.copy(0.6f))
+                            Spacer(Modifier.height(8.dp))
+                            TextButton(
+                                onClick = { viewModel.dismissFailureDialog() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Dismiss", color = Color.White.copy(0.45f), fontSize = 13.sp)
                             }
                         } else {
                             Button(
                                 onClick = { viewModel.dismissFailureDialog() },
                                 shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF374151)),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E2650)),
+                                border = BorderStroke(1.dp, Color(0xFF7C3AED).copy(0.4f)),
                                 modifier = Modifier.fillMaxWidth().height(50.dp)
                             ) {
-                                Icon(Icons.Default.SupportAgent, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Contact Support", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            TextButton(onClick = { viewModel.dismissFailureDialog() }, modifier = Modifier.fillMaxWidth()) {
-                                Text("Dismiss", color = Color.White.copy(0.6f))
+                                Text("Got it", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
                             }
                         }
                     }
                 }
             }
         }
+
 
     } // end Root Box
 

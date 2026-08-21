@@ -19,7 +19,7 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 12
+        versionCode = 13
         versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -107,7 +107,7 @@ dependencies {
     implementation("com.razorpay:checkout:1.6.36")
     
     // Google Play In-App Billing
-    implementation("com.android.billingclient:billing-ktx:7.0.0")
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
     
     // Hilt
     implementation(libs.hilt.android)

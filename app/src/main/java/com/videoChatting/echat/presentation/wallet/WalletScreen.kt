@@ -1,0 +1,507 @@
+package com.videoChatting.echat.presentation.wallet
+
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.videoChatting.echat.presentation.components.TalksyCoinIcon
+import com.videoChatting.echat.presentation.theme.*
+
+// ---------- Data ----------
+
+data class CoinPack(
+    val productId: String,
+    val coins: Int,
+    val priceInInr: Int,
+    val badge: String? = null,
+    val bonusCoins: String? = null
+)
+
+val coinPacks = listOf(
+    CoinPack("talksy_coins_50",   50,   10, badge = "STARTER"),
+    CoinPack("talksy_coins_100",  100,  20, badge = "POPULAR"),
+    CoinPack("talksy_coins_260",  260,  49, badge = "🔥 BEST VALUE",  bonusCoins = "+10 FREE"),
+    CoinPack("talksy_coins_550",  550,  99, badge = "⚡ SUPER SAVER", bonusCoins = "+50 FREE"),
+    CoinPack("talksy_coins_2000", 2000, 149, badge = "💎 VIP PACK",   bonusCoins = "+1000 FREE")
+)
+
+// ---------- Screen ----------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WalletScreen(
+    navController: NavController,
+    viewModel: WalletViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val currentCoins        by viewModel.currentCoins.collectAsState()
+    val isVerifying         by viewModel.isVerifyingPurchase.collectAsState()
+    val successEvent        by viewModel.purchaseSuccessEvent.collectAsState()
+    val failureEvent        by viewModel.purchaseFailureEvent.collectAsState()
+    val showCancel          by viewModel.showCancelSnackbar.collectAsState()
+    val productDetailsMap   by viewModel.playBillingManager.productDetailsMap.collectAsState()
+    val paymentUrl          by viewModel.paymentUrl.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show cancel snackbar
+    LaunchedEffect(showCancel) {
+        if (showCancel) snackbarHostState.showSnackbar("Purchase canceled")
+    }
+
+    // Fallback WebView
+    if (paymentUrl != null) {
+        PaymentWebViewScreen(
+            paymentUrl = paymentUrl!!,
+            onPaymentComplete = { viewModel.onPaymentComplete(it) },
+            onBack = { viewModel.dismissPaymentWebView() }
+        )
+        return
+    }
+
+    var showDailyRewardsSheet by remember { mutableStateOf(false) }
+
+    // ── Root Box so we can overlay the full-screen loader on top of Scaffold ──
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Wallet & Rewards", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = { if (!isVerifying) navController.navigateUp() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = CyberMidnight)
+                )
+            },
+            snackbarHost = {
+                SnackbarHost(snackbarHostState) { data ->
+                    Snackbar(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        containerColor = Color(0xFF2D2D44),
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text(data.visuals.message, fontWeight = FontWeight.Medium) }
+                }
+            },
+            containerColor = CyberMidnight
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding).background(CyberMidnight),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 1. Hero Balance Card
+                item { HeroBalanceCard(currentCoins) }
+
+                // 2. Earn Free Coins
+                item { SectionTitle("Earn Free Coins") }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        DailyBonusCard(onClick = { showDailyRewardsSheet = true })
+                        ContactsInviteCard(onClick = { navController.navigate("invite_and_contacts") })
+                    }
+                }
+
+                // 3. Recharge Section
+                item {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 8.dp),
+                        Arrangement.SpaceBetween,
+                        Alignment.CenterVertically
+                    ) {
+                        SectionTitle("Recharge Coins")
+                        Text("Google Play ⚡ 1-Tap Pay", fontSize = 11.sp, color = Color(0xFF38BDF8), fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                // 4. Coin Packs
+                items(coinPacks) { pack ->
+                    val formatted = productDetailsMap[pack.productId]
+                        ?.oneTimePurchaseOfferDetails?.formattedPrice ?: "₹${pack.priceInInr}"
+                    PremiumCoinPackRow(pack, formatted) {
+                        if (!isVerifying)
+                            (context as? Activity)?.let { viewModel.purchaseWithGooglePlay(it, pack.productId) }
+                    }
+                }
+
+                item { Spacer(Modifier.height(24.dp)) }
+            }
+        }
+
+        // ── Full-Screen Verification Overlay (TRUE full-screen, drawn above Scaffold) ──
+        if (isVerifying) {
+            BackHandler(true) { /* block back while verifying */ }
+
+            val inf = rememberInfiniteTransition(label = "overlay_anim")
+            val scale by inf.animateFloat(
+                initialValue = 0.88f, targetValue = 1.12f,
+                animationSpec = infiniteRepeatable(tween(800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                label = "coin_pulse"
+            )
+            val glowAlpha by inf.animateFloat(
+                initialValue = 0.4f, targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse),
+                label = "glow_pulse"
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF080512).copy(alpha = 0.97f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 40.dp)
+                ) {
+                    // Pulsing coin with golden ring
+                    Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+                        // Outer glow ring
+                        Box(
+                            modifier = Modifier
+                                .size(110.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFD700).copy(alpha = glowAlpha * 0.15f))
+                        )
+                        // Progress ring
+                        CircularProgressIndicator(
+                            color = Color(0xFFFFD700),
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.size(100.dp)
+                        )
+                        // Coin icon
+                        TalksyCoinIcon(size = 58.dp, modifier = Modifier.scale(scale))
+                    }
+
+                    Spacer(Modifier.height(28.dp))
+
+                    Text(
+                        "Securing Transaction...",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "Verifying with Google Play &\ncrediting coins to your wallet.",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Warning strip
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF7C3AED).copy(0.3f),
+                        border = BorderStroke(1.dp, Color(0xFF7C3AED).copy(0.5f))
+                    ) {
+                        Text(
+                            "⚠️ Please don't close or go back",
+                            color = Color(0xFFE9D5FF),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Success Dialog (inside root Box so it layers correctly) ──────────
+        successEvent?.let { evt ->
+            Dialog(onDismissRequest = { viewModel.dismissSuccessDialog() }) {
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF1E143E), Color(0xFF140D2B))))
+                        .border(1.5.dp, Brush.linearGradient(listOf(Color(0xFFFFD700), Color(0xFF7C3AED), Color(0xFF10B981))), RoundedCornerShape(28.dp))
+                        .padding(24.dp),
+                    Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(Brush.radialGradient(listOf(Color(0xFFFFD700).copy(0.3f), Color.Transparent))), contentAlignment = Alignment.Center) {
+                            TalksyCoinIcon(size = 58.dp)
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Text("🎉 Payment Successful!", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                        Spacer(Modifier.height(10.dp))
+                        Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFF065F46).copy(0.4f), border = BorderStroke(1.dp, Color(0xFF10B981).copy(0.6f))) {
+                            Text("+${evt.coinsAdded} Coins Added", color = Color(0xFF34D399), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Text("New Balance: ${evt.newBalance} Coins", color = Color(0xFFFFD700), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(24.dp))
+                        Button(
+                            onClick = { viewModel.dismissSuccessDialog() },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) { Text("Awesome! 🚀", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
+                    }
+                }
+            }
+        }
+
+        // ── Failure Dialog ─────────────────────────────────────────────────
+        failureEvent?.let { evt ->
+            val activity = context as? Activity
+            Dialog(onDismissRequest = { viewModel.dismissFailureDialog() }) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF1A1535), Color(0xFF120E28))))
+                        .border(1.dp, Color(0xFF7C3AED).copy(0.35f), RoundedCornerShape(24.dp))
+                        .padding(24.dp),
+                    Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // Icon — amber/orange, not red
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF59E0B).copy(0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("⚠️", fontSize = 30.sp)
+                        }
+                        Spacer(Modifier.height(14.dp))
+
+                        Text(
+                            "Payment Unsuccessful",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(8.dp))
+
+                        // Clean, friendly message — strip ugly Google error codes
+                        val friendlyMessage = when {
+                            evt.message.contains("OR-FGEMF", ignoreCase = true) ||
+                            evt.message.contains("declined", ignoreCase = true) ->
+                                "Your payment was declined by the bank or payment provider. Please check your payment method and try again."
+                            evt.message.contains("cancel", ignoreCase = true) ->
+                                "Payment was cancelled. You can try again anytime."
+                            evt.message.contains("already owned", ignoreCase = true) ->
+                                "A previous purchase is still being processed. Please wait a moment and try again."
+                            evt.message.contains("network", ignoreCase = true) ||
+                            evt.message.contains("connection", ignoreCase = true) ->
+                                "Network issue detected. Please check your internet connection and retry."
+                            else -> "Something went wrong with your payment. Please try again."
+                        }
+                        Text(
+                            friendlyMessage,
+                            color = Color.White.copy(0.65f),
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        )
+
+                        Spacer(Modifier.height(22.dp))
+
+                        if (evt.isRetryable) {
+                            // Primary: Try Again — indigo/purple (theme)
+                            Button(
+                                onClick = { if (activity != null) viewModel.retryPurchase(activity) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D28D9)),
+                                modifier = Modifier.fillMaxWidth().height(50.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Try Again", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            TextButton(
+                                onClick = { viewModel.dismissFailureDialog() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Dismiss", color = Color.White.copy(0.45f), fontSize = 13.sp)
+                            }
+                        } else {
+                            Button(
+                                onClick = { viewModel.dismissFailureDialog() },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E2650)),
+                                border = BorderStroke(1.dp, Color(0xFF7C3AED).copy(0.4f)),
+                                modifier = Modifier.fillMaxWidth().height(50.dp)
+                            ) {
+                                Text("Got it", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+    } // end Root Box
+
+    if (showDailyRewardsSheet) {
+        com.videoChatting.echat.presentation.rewards.DailyRewardsBottomSheet(onDismiss = { showDailyRewardsSheet = false })
+    }
+}
+
+// ---------- Sub-Composables ----------
+
+@Composable
+private fun HeroBalanceCard(coins: Int) {
+    Box(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF1E143E), Color(0xFF2B1B66), Color(0xFF140D2B))))
+            .border(1.dp, Brush.linearGradient(listOf(Color(0xFF7C3AED).copy(0.8f), Color(0xFFFFD700).copy(0.6f), Color(0xFF38BDF8).copy(0.3f))), RoundedCornerShape(24.dp))
+            .padding(24.dp),
+        Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("CURRENT COIN BALANCE", fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = Color.White.copy(0.6f))
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TalksyCoinIcon(size = 42.dp)
+                Spacer(Modifier.width(12.dp))
+                Text(coins.toString(), fontSize = 42.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            }
+            Spacer(Modifier.height(12.dp))
+            Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF3B1E78).copy(0.6f), border = BorderStroke(1.dp, Color(0xFFFFD700).copy(0.3f))) {
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Bolt, null, tint = Color(0xFFFFD700), modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("10 Coins = 1 Minute of HD Video Call", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFFFD700))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(top = 4.dp))
+}
+
+@Composable
+private fun DailyBonusCard(onClick: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+            .background(Brush.horizontalGradient(listOf(Color(0xFF3B1470), Color(0xFF5B21B6))))
+            .border(1.dp, Color(0xFFA78BFA).copy(0.3f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick).padding(16.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(46.dp).clip(CircleShape).background(Color(0xFF240E48)), contentAlignment = Alignment.Center) { Text("🎡", fontSize = 24.sp) }
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text("Daily Bonus & Lucky Spin", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Claim daily streak + spin wheel!", fontSize = 11.sp, color = Color.White.copy(0.75f))
+                }
+            }
+            Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFFFFD700), modifier = Modifier.padding(start = 8.dp)) {
+                Text("Claim ✨", color = Color(0xFF261C4E), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContactsInviteCard(onClick: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+            .background(Brush.horizontalGradient(listOf(Color(0xFF064E3B), Color(0xFF047857))))
+            .border(1.dp, Color(0xFF34D399).copy(0.3f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick).padding(16.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(46.dp).clip(CircleShape).background(Color(0xFF032D23)), Alignment.Center) { Text("🎁", fontSize = 24.sp) }
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text("Contacts & Invite", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Earn +50 coins for every friend!", fontSize = 11.sp, color = Color.White.copy(0.75f))
+                }
+            }
+            Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFF10B981), modifier = Modifier.padding(start = 8.dp)) {
+                Text("Invite →", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun PremiumCoinPackRow(pack: CoinPack, formattedPrice: String, onClick: () -> Unit) {
+    val isFeatured = pack.badge?.contains("BEST VALUE") == true
+    Box(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+            .background(if (isFeatured) Color(0xFF1E173D) else Color(0xFF16122E))
+            .border(1.dp, if (isFeatured) Color(0xFFFFD700).copy(0.7f) else Color(0xFF38BDF8).copy(0.25f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick).padding(16.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                TalksyCoinIcon(size = 36.dp)
+                Spacer(Modifier.width(14.dp))
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("${pack.coins} Coins", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        if (pack.bonusCoins != null) {
+                            Spacer(Modifier.width(6.dp))
+                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFF059669)) {
+                                Text(pack.bonusCoins, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold, color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp))
+                            }
+                        }
+                    }
+                    if (pack.badge != null)
+                        Text(pack.badge, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (isFeatured) Color(0xFFFFD700) else Color(0xFF38BDF8))
+                    else
+                        Text("${pack.coins / 10} Mins Video Time", fontSize = 11.sp, color = Color.White.copy(0.5f))
+                }
+            }
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ElectricIndigo),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+            ) { Text(formattedPrice, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp) }
+        }
+    }
+}

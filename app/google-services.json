@@ -1,0 +1,161 @@
+{
+  "project_info": {
+    "project_number": "1020177538461",
+    "project_id": "noticeboard-4f708",
+    "storage_bucket": "noticeboard-4f708.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020177538461:android:82f63af5b20bd1a1432374",
+        "android_client_info": {
+          "package_name": "com.notifiy.noticeboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020177538461-crntofn9702s3svjaa33nrqg1oe2hvjo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifiy.noticeboard",
+            "certificate_hash": "9ee212ebe52c71628dc8a55bea414a1c303d543c"
+          }
+        },
+        {
+          "client_id": "1020177538461-o82ql5jca4eot47aba7fmcqed0ejstsl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifiy.noticeboard",
+            "certificate_hash": "1d3c9cdcaa5ccf175f1719a585de5ee068be4ce4"
+          }
+        },
+        {
+          "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChwf_8Hp3sEbfD9LqHVCZyQT-tzKsVYqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020177538461:android:845ad86a68a648d3432374",
+        "android_client_info": {
+          "package_name": "com.notifiy.noticeboard.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020177538461-bgnmpjjpikbvvgbea7np5t48aiku4pfn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifiy.noticeboard.debug",
+            "certificate_hash": "089e15e482b4d62b8228a7a97aea2ec5012d3a4f"
+          }
+        },
+        {
+          "client_id": "1020177538461-nmbsssc14dh0tu1rqc67vaqon9di9f57.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifiy.noticeboard.debug",
+            "certificate_hash": "9ee212ebe52c71628dc8a55bea414a1c303d543c"
+          }
+        },
+        {
+          "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChwf_8Hp3sEbfD9LqHVCZyQT-tzKsVYqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020177538461:android:14ff44d9adb954e7432374",
+        "android_client_info": {
+          "package_name": "com.videoChatting.echat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020177538461-fvtfo79oljnmpkbs5u63nn9g028sf7g6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "47d213485063ef4d4b35b96c66d4dc0267351d13"
+          }
+        },
+        {
+          "client_id": "1020177538461-j0c2af63a6qiqhrm84grd4fo1kos9kn2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "b9a234bdc7e81f7c98e715ae7b29e4a4013ef3cb"
+          }
+        },
+        {
+          "client_id": "1020177538461-kmlt9k99jlnq5svi3sitna30lr37ksio.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "4358fb24b12637e1b775b562f3384a17528d152a"
+          }
+        },
+        {
+          "client_id": "1020177538461-rb1ebpvbg1hm1t2iruaokc2iau8jblej.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.videoChatting.echat",
+            "certificate_hash": "7001fa018765e92c6adac4c0749e3f648a07da4d"
+          }
+        },
+        {
+          "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChwf_8Hp3sEbfD9LqHVCZyQT-tzKsVYqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020177538461-1j75djeebl4gmm7g0ok1pit25eutm25l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
